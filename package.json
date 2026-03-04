@@ -19,6 +19,7 @@
 	"homepage": "https://github.com/Shkolnik-bit/praktika#readme",
 	"description": "",
 	"dependencies": {
-		"exceljs": "^4.4.0"
+		"exceljs": "^4.4.0",
+		"firebase": "^12.10.0"
 	}
 }
