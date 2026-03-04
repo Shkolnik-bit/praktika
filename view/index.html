@@ -1,4 +1,34 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Главная</title>
+	</head>
+	<body>
+		<h1>Главная страница</h1>
 
+		<script type="module">
+			import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js'
+			import {
+				getAuth,
+				onAuthStateChanged,
+			} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js'
+
+			const firebaseConfig = {
+				apiKey: 'AIzaSyD_mvSHO3Mt_lk4iM8gIMCoqfK63-3Qvis',
+				authDomain: 'praktikask-caa0b.firebaseapp.com',
+				projectId: 'praktikask-caa0b',
+				appId: '1:638525976207:web:865c01a5b7981e0d7a8afa',
+			}
+
+			const app = initializeApp(firebaseConfig)
+			const auth = getAuth(app)
+
+			onAuthStateChanged(auth, user => {
+				if (!user) {
+					window.location.href = 'view/login.html'
+				}
+			})
+		</script>
+	</body>
 </html>
