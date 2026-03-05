@@ -1,7 +1,13 @@
-import { getAuth, signInWithEmailAndPassword, signOut } from 'firebase/auth'
+import { initializeApp } from 'firebase/app'
+import {
+	createUserWithEmailAndPassword,
+	getAuth,
+	signInWithEmailAndPassword,
+	signOut,
+} from 'firebase/auth'
 
 const firebaseConfig = {
-	apiKey: 'AIzaSyD_mvSHO3Mt_lk4iM8gIMCoqfK63-3Qvis',
+	apiKey: 'AIzaSy...',
 	authDomain: 'praktikask-caa0b.firebaseapp.com',
 	projectId: 'praktikask-caa0b',
 	storageBucket: 'praktikask-caa0b.firebasestorage.app',
@@ -13,12 +19,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 const auth = getAuth(app)
 
-//  Вход
+// Вход
 export async function login(email, password) {
 	return await signInWithEmailAndPassword(auth, email, password)
 }
 
-//  Выход
+// Регистрация
+export async function register(email, password) {
+	return await createUserWithEmailAndPassword(auth, email, password)
+}
+
+// Выход
 export async function logout() {
 	return await signOut(auth)
 }

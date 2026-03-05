@@ -1,14 +1,26 @@
 <!doctype html>
-<html>
+<html lang="ru">
 	<head>
-		<title>Login</title>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Авторизация</title>
 	</head>
-	<body>
-		<h2>Авторизация</h2>
 
-		<input type="email" id="email" placeholder="Email" />
-		<input type="password" id="password" placeholder="Password" />
-		<button id="loginBtn">Войти</button>
+	<body>
+		<h2 id="formTitle">Авторизация</h2>
+
+		<form id="authForm">
+			<input type="email" id="email" placeholder="Email" required />
+			<br /><br />
+			<input type="password" id="password" placeholder="Password" required />
+			<br /><br />
+			<button type="submit" id="submitBtn">Войти</button>
+		</form>
+
+		<p>
+			<span id="toggleText">Нет аккаунта?</span>
+			<button type="button" id="toggleMode">Зарегистрироваться</button>
+		</p>
 
 		<script type="module" src="../viewmodels/AuthViewModel.js"></script>
 	</body>
