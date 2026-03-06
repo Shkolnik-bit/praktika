@@ -3,25 +3,108 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Авторизация</title>
+		<title>Авторизация — СкладПро</title>
+		<link rel="stylesheet" href="styles/root.css" />
 	</head>
-
 	<body>
-		<h2 id="formTitle">Авторизация</h2>
+		<div class="auth-layout">
+			<!-- Левая панель -->
+			<div class="auth-panel-left">
+				<div class="auth-brand">
+					<div class="auth-brand-icon">📦</div>
+					<div class="auth-brand-name">СкладПро</div>
+				</div>
+				<div class="auth-hero">
+					<h1>Облачная ERP<br />для вашего бизнеса</h1>
+					<p>Продажи, закупки, учёт, финансы и отчёты — всё в одной системе</p>
+				</div>
+				<div class="mini-dashboard">
+					<div class="mini-dash-title">Сегодня</div>
+					<div class="mini-stats">
+						<div>
+							<div class="mini-stat-val">23 459</div>
+							<div class="mini-stat-label">Продажи ₽</div>
+						</div>
+						<div>
+							<div class="mini-stat-val">7</div>
+							<div class="mini-stat-label">Заказов</div>
+						</div>
+						<div>
+							<div class="mini-stat-val">4.8</div>
+							<div class="mini-stat-label">Рейтинг</div>
+						</div>
+					</div>
+					<div class="mini-bar"><div class="mini-bar-fill"></div></div>
+				</div>
+			</div>
 
-		<form id="authForm">
-			<input type="email" id="email" placeholder="Email" required />
-			<br /><br />
-			<input type="password" id="password" placeholder="Password" required />
-			<br /><br />
-			<button type="submit" id="submitBtn">Войти</button>
-		</form>
+			<!-- Правая панель -->
+			<div class="auth-panel-right">
+				<div class="auth-card">
+					<h2 id="formTitle">С возвращением!</h2>
+					<p class="subtitle" id="formSubtitle">Войдите в свой аккаунт</p>
 
-		<p>
-			<span id="toggleText">Нет аккаунта?</span>
-			<button type="button" id="toggleMode">Зарегистрироваться</button>
-		</p>
+					<form id="authForm">
+						<div class="field-group">
+							<label for="email">Email</label>
+							<input
+								type="email"
+								id="email"
+								placeholder="you@company.ru"
+								required
+							/>
+						</div>
+						<div class="field-group">
+							<label for="password">Пароль</label>
+							<input
+								type="password"
+								id="password"
+								placeholder="••••••••"
+								required
+							/>
+						</div>
+						<button
+							class="btn btn-primary btn-full"
+							type="submit"
+							id="submitBtn"
+						>
+							Войти
+						</button>
+					</form>
+
+					<div class="toggle-row">
+						<span id="toggleText">Нет аккаунта?</span>
+						<button type="button" id="toggleMode">Зарегистрироваться</button>
+					</div>
+				</div>
+			</div>
+		</div>
 
 		<script type="module" src="../viewmodels/AuthViewModel.js"></script>
+		<script>
+			const toggleBtn = document.getElementById('toggleMode')
+			const toggleText = document.getElementById('toggleText')
+			const formTitle = document.getElementById('formTitle')
+			const formSubtitle = document.getElementById('formSubtitle')
+			const submitBtn = document.getElementById('submitBtn')
+			let isLogin = true
+
+			toggleBtn.addEventListener('click', () => {
+				isLogin = !isLogin
+				if (isLogin) {
+					formTitle.textContent = 'С возвращением!'
+					formSubtitle.textContent = 'Войдите в свой аккаунт'
+					submitBtn.textContent = 'Войти'
+					toggleText.textContent = 'Нет аккаунта?'
+					toggleBtn.textContent = 'Зарегистрироваться'
+				} else {
+					formTitle.textContent = 'Регистрация'
+					formSubtitle.textContent = 'Создайте новый аккаунт'
+					submitBtn.textContent = 'Создать аккаунт'
+					toggleText.textContent = 'Уже есть аккаунт?'
+					toggleBtn.textContent = 'Войти'
+				}
+			})
+		</script>
 	</body>
 </html>
