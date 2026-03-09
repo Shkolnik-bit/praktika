@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>СкладПро — Товары</title>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<style>
+			:root {
+				--blue: #1565c0;
+				--blue-mid: #1976d2;
+				--blue-light: #42a5f5;
+				--blue-pale: #e3f2fd;
+				--accent: #00c853;
+				--accent-soft: #e8f5e9;
+				--orange: #ff6d00;
+				--orange-soft: #fff3e0;
+				--red: #ef5350;
+				--white: #ffffff;
+				--bg: #f4f6fb;
+				--text: #1a237e;
+				--text-mid: #3949ab;
+				--text-soft: #7986cb;
+				--border: #e8eaf6;
+				--radius: 16px;
+				--shadow: 0 4px 20px rgba(21, 101, 192, 0.08);
+				--shadow-btn: 0 3px 14px rgba(21, 101, 192, 0.3);
+			}
+
+			*,
+			*::before,
+			*::after {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+			}
+			html,
+			body {
+				height: 100%;
+			}
+			body {
+				font-family: 'Geologica', sans-serif;
+				background: var(--bg);
+				color: var(--text);
+				-webkit-font-smoothing: antialiased;
+				padding: 28px 32px;
+			}
+			input,
+			select,
+			button {
+				font-family: 'Geologica', sans-serif;
+			}
+			::-webkit-scrollbar {
+				width: 6px;
+			}
+			::-webkit-scrollbar-thumb {
+				background: var(--border);
+				border-radius: 3px;
+			}
+
+			/* ── TOPBAR ── */
+			.topbar {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				margin-bottom: 28px;
+			}
+			.topbar-left {
+				display: flex;
+				align-items: center;
+				gap: 16px;
+			}
+			.topbar h1 {
+				font-size: 24px;
+				font-weight: 700;
+				color: var(--text);
+			}
+			.topbar-date {
+				font-size: 13px;
+				color: var(--text-soft);
+				margin-top: 2px;
+			}
+			.topbar-actions {
+				display: flex;
+				gap: 10px;
+				align-items: center;
+			}
+
+			/* ── КНОПКА НАЗАД ── */
+			.btn-back {
+				display: inline-flex;
+				align-items: center;
+				gap: 6px;
+				padding: 8px 14px;
+				border-radius: 10px;
+				border: 1.5px solid var(--border);
+				background: var(--white);
+				color: var(--text-mid);
+				font-size: 13px;
+				font-weight: 600;
+				cursor: pointer;
+				transition: all 0.15s;
+				text-decoration: none;
+			}
+			.btn-back:hover {
+				border-color: var(--blue-light);
+				color: var(--blue);
+			}
+
+			/* ── КНОПКИ ── */
+			.btn {
+				padding: 9px 18px;
+				border-radius: 10px;
+				font-size: 13px;
+				font-weight: 600;
+				cursor: pointer;
+				transition: all 0.15s;
+				border: none;
+				display: inline-flex;
+				align-items: center;
+				gap: 6px;
+			}
+			.btn-primary {
+				background: var(--blue);
+				color: var(--white);
+				box-shadow: var(--shadow-btn);
+			}
+			.btn-primary:hover {
+				background: var(--blue-mid);
+				transform: translateY(-1px);
+			}
+			.btn-primary:active {
+				transform: translateY(0);
+			}
+			.btn-outline {
+				background: var(--white);
+				border: 1.5px solid var(--border);
+				color: var(--text-mid);
+			}
+			.btn-outline:hover {
+				border-color: var(--blue-light);
+				color: var(--blue);
+			}
+
+			/* ── KPI ── */
+			.kpi-grid {
+				display: grid;
+				grid-template-columns: repeat(4, 1fr);
+				gap: 16px;
+				margin-bottom: 24px;
+			}
+			.kpi-card {
+				background: var(--white);
+				border-radius: var(--radius);
+				padding: 20px 22px;
+				border: 1px solid var(--border);
+				transition: box-shadow 0.2s;
+			}
+			.kpi-card:hover {
+				box-shadow: var(--shadow);
+			}
+			.kpi-label {
+				font-size: 12px;
+				font-weight: 500;
+				color: var(--text-soft);
+				margin-bottom: 10px;
+			}
+			.kpi-val {
+				font-size: 26px;
+				font-weight: 700;
+				color: var(--text);
+				line-height: 1;
+			}
+			.kpi-sub {
+				font-size: 12px;
+				margin-top: 8px;
+				font-weight: 500;
+				color: var(--accent);
+			}
+
+			/* ── КАРТОЧКА ── */
+			.card {
+				background: var(--white);
+				border-radius: var(--radius);
+				padding: 22px 24px;
+				border: 1px solid var(--border);
+				margin-bottom: 20px;
+				transition: box-shadow 0.2s;
+			}
+			.card-title {
+				font-size: 15px;
+				font-weight: 600;
+				color: var(--text);
+				margin-bottom: 18px;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 12px;
+				flex-wrap: wrap;
+			}
+
+			/* ── ТУЛБАР ТАБЛИЦЫ ── */
+			.table-toolbar {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				flex-wrap: wrap;
+			}
+			.search-input {
+				padding: 8px 14px;
+				font-size: 13px;
+				background: var(--bg);
+				border: 1.5px solid transparent;
+				border-radius: 10px;
+				outline: none;
+				color: var(--text);
+				width: 220px;
+				transition:
+					border-color 0.2s,
+					background 0.2s;
+				font-family: 'Geologica', sans-serif;
+			}
+			.search-input:focus {
+				border-color: var(--blue-light);
+				background: var(--white);
+			}
+			.search-input::placeholder {
+				color: #a5b4d4;
+			}
+
+			.filter-select {
+				padding: 8px 12px;
+				font-size: 13px;
+				background: var(--bg);
+				border: 1.5px solid transparent;
+				border-radius: 10px;
+				outline: none;
+				color: var(--text-mid);
+				cursor: pointer;
+				transition:
+					border-color 0.2s,
+					background 0.2s;
+				font-family: 'Geologica', sans-serif;
+			}
+			.filter-select:focus {
+				border-color: var(--blue-light);
+				background: var(--white);
+			}
+
+			/* ── ТАБЛИЦА ── */
+			table {
+				width: 100%;
+				border-collapse: collapse;
+			}
+			thead th {
+				text-align: left;
+				font-size: 11px;
+				font-weight: 600;
+				text-transform: uppercase;
+				letter-spacing: 0.8px;
+				color: var(--text-soft);
+				padding: 0 0 12px 0;
+				border-bottom: 1px solid var(--border);
+			}
+			tbody tr {
+				border-bottom: 1px solid var(--border);
+				transition: background 0.1s;
+			}
+			tbody tr:last-child {
+				border-bottom: none;
+			}
+			tbody tr:hover {
+				background: var(--bg);
+			}
+			tbody td {
+				padding: 12px 0;
+				font-size: 13px;
+				color: var(--text-mid);
+			}
+
+			/* ── BADGE ── */
+			.badge {
+				display: inline-block;
+				padding: 3px 9px;
+				border-radius: 20px;
+				font-size: 11px;
+				font-weight: 600;
+			}
+			.badge-green {
+				background: var(--accent-soft);
+				color: #2e7d32;
+			}
+			.badge-orange {
+				background: var(--orange-soft);
+				color: var(--orange);
+			}
+			.badge-blue {
+				background: var(--blue-pale);
+				color: var(--blue);
+			}
+
+			/* ── ЗВЁЗДЫ ── */
+			.stars {
+				color: #ffa000;
+				font-size: 12px;
+				letter-spacing: 1px;
+			}
+			.stars-empty {
+				color: #e0e0e0;
+			}
+
+			/* ── ПУСТОЕ СОСТОЯНИЕ ── */
+			.empty-state {
+				text-align: center;
+				padding: 48px;
+				color: var(--text-soft);
+				font-size: 14px;
+			}
+			.empty-state-icon {
+				font-size: 40px;
+				margin-bottom: 12px;
+			}
+
+			/* ── RESPONSIVE ── */
+			@media (max-width: 1000px) {
+				.kpi-grid {
+					grid-template-columns: repeat(2, 1fr);
+				}
+			}
+			@media (max-width: 700px) {
+				body {
+					padding: 16px;
+				}
+				.kpi-grid {
+					grid-template-columns: 1fr 1fr;
+				}
+				.topbar {
+					flex-direction: column;
+					align-items: flex-start;
+					gap: 12px;
+				}
+				.table-toolbar {
+					flex-direction: column;
+					align-items: stretch;
+				}
+				.search-input {
+					width: 100%;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<!-- TOPBAR -->
+		<div class="topbar">
+			<div class="topbar-left">
+				<a class="btn-back" href="index.html">← Главная</a>
+				<div>
+					<h1>Товары</h1>
+					<div class="topbar-date" id="goods-date"></div>
+				</div>
+			</div>
+			<div class="topbar-actions">
+				<button class="btn btn-outline" id="resetBtn">↺ Сбросить</button>
+				<button class="btn btn-primary" id="addBtn">+ Добавить товар</button>
+			</div>
+		</div>
+
+		<!-- KPI -->
+		<div class="kpi-grid">
+			<div class="kpi-card">
+				<div class="kpi-label">Всего товаров</div>
+				<div class="kpi-val" id="kpi-total">—</div>
+				<div class="kpi-sub">в каталоге</div>
+			</div>
+			<div class="kpi-card">
+				<div class="kpi-label">Общая стоимость</div>
+				<div class="kpi-val" id="kpi-sum">—</div>
+				<div class="kpi-sub">▲ +5%</div>
+			</div>
+			<div class="kpi-card">
+				<div class="kpi-label">Средняя цена</div>
+				<div class="kpi-val" id="kpi-avg">—</div>
+				<div class="kpi-sub">за единицу</div>
+			</div>
+			<div class="kpi-card">
+				<div class="kpi-label">Средний рейтинг</div>
+				<div class="kpi-val" id="kpi-rating">—</div>
+				<div class="kpi-sub">из 5 ★</div>
+			</div>
+		</div>
+
+		<!-- ТАБЛИЦА -->
+		<div class="card">
+			<div class="card-title">
+				Каталог товаров
+				<div class="table-toolbar">
+					<input
+						class="search-input"
+						id="searchInput"
+						type="text"
+						placeholder="🔍  Поиск..."
+					/>
+					<select class="filter-select" id="contractorFilter">
+						<option value="">Все поставщики</option>
+					</select>
+					<select class="filter-select" id="sortSelect">
+						<option value="name">По названию</option>
+						<option value="price-desc">Цена ↓</option>
+						<option value="price-asc">Цена ↑</option>
+						<option value="rating-desc">Рейтинг ↓</option>
+						<option value="date-desc">Дата ↓</option>
+					</select>
+					<span class="badge badge-blue" id="count-badge">0 товаров</span>
+				</div>
+			</div>
+
+			<table>
+				<thead>
+					<tr>
+						<th style="width: 36px">#</th>
+						<th>Название</th>
+						<th>Поставщик</th>
+						<th>Дата</th>
+						<th>Рейтинг</th>
+						<th>Цена</th>
+						<th>Статус</th>
+					</tr>
+				</thead>
+				<tbody id="goods-tbody"></tbody>
+			</table>
+		</div>
+	</body>
+	<script src="../viewmodels/goods.js"></script>
+</html>
