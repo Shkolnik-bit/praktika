@@ -8,417 +8,73 @@
 			href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&display=swap"
 			rel="stylesheet"
 		/>
+		<link rel="stylesheet" href="../view/styles/root.css" />
 		<style>
-			:root {
-				--blue: #1565c0;
-				--blue-mid: #1976d2;
-				--blue-light: #42a5f5;
-				--blue-pale: #e3f2fd;
-				--accent: #00c853;
-				--accent-soft: #e8f5e9;
-				--orange: #ff6d00;
-				--orange-soft: #fff3e0;
-				--red: #ef5350;
-				--white: #ffffff;
-				--bg: #f4f6fb;
-				--text: #1a237e;
-				--text-mid: #3949ab;
-				--text-soft: #7986cb;
-				--border: #e8eaf6;
-				--radius: 16px;
-				--shadow: 0 4px 20px rgba(21, 101, 192, 0.08);
-				--shadow-btn: 0 3px 14px rgba(21, 101, 192, 0.3);
-			}
-
-			*,
-			*::before,
-			*::after {
-				box-sizing: border-box;
-				margin: 0;
-				padding: 0;
-			}
-			html,
-			body {
-				height: 100%;
-			}
-			body {
-				font-family: 'Geologica', sans-serif;
-				background: var(--bg);
-				color: var(--text);
-				-webkit-font-smoothing: antialiased;
-				padding: 28px 32px;
-			}
-			input,
-			select,
-			button {
-				font-family: 'Geologica', sans-serif;
-			}
-			::-webkit-scrollbar {
-				width: 6px;
-			}
-			::-webkit-scrollbar-thumb {
-				background: var(--border);
-				border-radius: 3px;
-			}
-
-			/* ── TOPBAR ── */
-			.topbar {
-				display: flex;
-				align-items: center;
-				justify-content: space-between;
-				margin-bottom: 28px;
-			}
-			.topbar-left {
-				display: flex;
-				align-items: center;
-				gap: 16px;
-			}
-			.topbar h1 {
-				font-size: 24px;
-				font-weight: 700;
-				color: var(--text);
-			}
-			.topbar-date {
-				font-size: 13px;
-				color: var(--text-soft);
-				margin-top: 2px;
-			}
-			.topbar-actions {
-				display: flex;
-				gap: 10px;
-			}
-
-			/* ── КНОПКА НАЗАД ── */
-			.btn-back {
-				display: inline-flex;
-				align-items: center;
-				gap: 6px;
-				padding: 8px 14px;
-				border-radius: 10px;
-				border: 1.5px solid var(--border);
-				background: var(--white);
-				color: var(--text-mid);
-				font-size: 13px;
-				font-weight: 600;
-				cursor: pointer;
-				transition: all 0.15s;
-				text-decoration: none;
-			}
-			.btn-back:hover {
-				border-color: var(--blue-light);
-				color: var(--blue);
-			}
-
-			/* ── КНОПКИ ── */
-			.btn {
-				padding: 9px 18px;
-				border-radius: 10px;
-				font-size: 13px;
-				font-weight: 600;
-				cursor: pointer;
-				transition: all 0.15s;
+			.action-btn {
+				background: none;
 				border: none;
-				display: inline-flex;
-				align-items: center;
-				gap: 6px;
-			}
-			.btn-primary {
-				background: var(--blue);
-				color: var(--white);
-				box-shadow: var(--shadow-btn);
-			}
-			.btn-primary:hover {
-				background: var(--blue-mid);
-				transform: translateY(-1px);
-			}
-			.btn-primary:active {
-				transform: translateY(0);
-			}
-			.btn-outline {
-				background: var(--white);
-				border: 1.5px solid var(--border);
-				color: var(--text-mid);
-			}
-			.btn-outline:hover {
-				border-color: var(--blue-light);
-				color: var(--blue);
-			}
-
-			/* ── KPI ── */
-			.kpi-grid {
-				display: grid;
-				grid-template-columns: repeat(4, 1fr);
-				gap: 16px;
-				margin-bottom: 24px;
-			}
-			.kpi-card {
-				background: var(--white);
-				border-radius: var(--radius);
-				padding: 20px 22px;
-				border: 1px solid var(--border);
-				transition: box-shadow 0.2s;
-			}
-			.kpi-card:hover {
-				box-shadow: var(--shadow);
-			}
-			.kpi-label {
-				font-size: 12px;
-				font-weight: 500;
-				color: var(--text-soft);
-				margin-bottom: 10px;
-			}
-			.kpi-val {
-				font-size: 26px;
-				font-weight: 700;
-				color: var(--text);
+				cursor: pointer;
+				padding: 4px 7px;
+				border-radius: 7px;
+				font-size: 14px;
+				transition: background 0.15s;
 				line-height: 1;
 			}
-			.kpi-val-sm {
-				font-size: 16px;
-				font-weight: 700;
-				color: var(--text);
-				line-height: 1.3;
+			.action-btn:hover {
+				background: var(--bg);
 			}
-			.kpi-sub {
-				font-size: 12px;
-				margin-top: 8px;
-				font-weight: 500;
-				color: var(--accent);
+			.action-btn.delete:hover {
+				background: #ffebee;
 			}
-
-			/* ── КАРТОЧКИ КОНТРАГЕНТОВ ── */
-			.contractors-grid {
-				display: grid;
-				grid-template-columns: repeat(3, 1fr);
-				gap: 16px;
-				margin-bottom: 24px;
+			.actions-cell {
+				display: flex;
+				gap: 2px;
+				align-items: center;
 			}
-			.contractor-card {
+			.confirm-modal {
 				background: var(--white);
 				border-radius: var(--radius);
-				padding: 22px;
-				border: 1px solid var(--border);
-				transition:
-					box-shadow 0.2s,
-					transform 0.2s;
-				cursor: default;
-			}
-			.contractor-card:hover {
-				box-shadow: var(--shadow);
-				transform: translateY(-2px);
-			}
-			.contractor-card-header {
-				display: flex;
-				align-items: center;
-				gap: 14px;
-				margin-bottom: 18px;
-			}
-			.contractor-avatar {
-				width: 46px;
-				height: 46px;
-				border-radius: 12px;
-				background: linear-gradient(135deg, var(--blue), var(--blue-light));
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				font-size: 16px;
-				font-weight: 700;
-				color: var(--white);
-				flex-shrink: 0;
-			}
-			.contractor-name {
-				font-size: 14px;
-				font-weight: 700;
-				color: var(--text);
-			}
-			.contractor-email {
-				font-size: 12px;
-				color: var(--text-soft);
-				margin-top: 2px;
-			}
-
-			.contractor-stats {
-				display: grid;
-				grid-template-columns: 1fr 1fr;
-				gap: 8px;
-				margin-bottom: 16px;
-			}
-			.stat-box {
-				background: var(--bg);
-				border-radius: 10px;
-				padding: 10px 12px;
-			}
-			.stat-box-label {
-				font-size: 11px;
-				color: var(--text-soft);
-				margin-bottom: 4px;
-			}
-			.stat-box-val {
-				font-size: 16px;
-				font-weight: 700;
-				color: var(--text);
-			}
-
-			.contractor-footer {
-				display: flex;
-				align-items: center;
-				justify-content: space-between;
-				padding-top: 14px;
-				border-top: 1px solid var(--border);
-			}
-			.contractor-phone {
-				font-size: 12px;
-				color: var(--text-soft);
-			}
-
-			/* ── ЗВЁЗДЫ ── */
-			.stars {
-				color: #ffa000;
-				font-size: 13px;
-				letter-spacing: 1px;
-			}
-			.stars-empty {
-				color: #e0e0e0;
-			}
-
-			/* ── КАРТОЧКА (таблица) ── */
-			.card {
-				background: var(--white);
-				border-radius: var(--radius);
-				padding: 22px 24px;
-				border: 1px solid var(--border);
-				margin-bottom: 20px;
-			}
-			.card-title {
-				font-size: 15px;
-				font-weight: 600;
-				color: var(--text);
-				margin-bottom: 18px;
-				display: flex;
-				align-items: center;
-				justify-content: space-between;
-				gap: 12px;
-				flex-wrap: wrap;
-			}
-
-			/* ── ПОИСК ── */
-			.search-input {
-				padding: 8px 14px;
-				font-size: 13px;
-				background: var(--bg);
-				border: 1.5px solid transparent;
-				border-radius: 10px;
-				outline: none;
-				color: var(--text);
-				width: 220px;
-				transition:
-					border-color 0.2s,
-					background 0.2s;
-				font-family: 'Geologica', sans-serif;
-			}
-			.search-input:focus {
-				border-color: var(--blue-light);
-				background: var(--white);
-			}
-			.search-input::placeholder {
-				color: #a5b4d4;
-			}
-
-			/* ── ТАБЛИЦА ── */
-			table {
+				padding: 28px;
 				width: 100%;
-				border-collapse: collapse;
-			}
-			thead th {
-				text-align: left;
-				font-size: 11px;
-				font-weight: 600;
-				text-transform: uppercase;
-				letter-spacing: 0.8px;
-				color: var(--text-soft);
-				padding: 0 0 12px 0;
-				border-bottom: 1px solid var(--border);
-			}
-			tbody tr {
-				border-bottom: 1px solid var(--border);
-				transition: background 0.1s;
-			}
-			tbody tr:last-child {
-				border-bottom: none;
-			}
-			tbody tr:hover {
-				background: var(--bg);
-			}
-			tbody td {
-				padding: 12px 0;
-				font-size: 13px;
-				color: var(--text-mid);
-			}
-
-			/* ── BADGE ── */
-			.badge {
-				display: inline-block;
-				padding: 3px 9px;
-				border-radius: 20px;
-				font-size: 11px;
-				font-weight: 600;
-			}
-			.badge-blue {
-				background: var(--blue-pale);
-				color: var(--blue);
-			}
-			.badge-green {
-				background: var(--accent-soft);
-				color: #2e7d32;
-			}
-			.badge-orange {
-				background: var(--orange-soft);
-				color: var(--orange);
-			}
-
-			/* ── EMPTY ── */
-			.empty-state {
+				max-width: 380px;
+				box-shadow: 0 8px 40px rgba(21, 101, 192, 0.18);
+				animation: modalIn 0.2s ease;
 				text-align: center;
-				padding: 48px;
-				color: var(--text-soft);
+			}
+			.confirm-modal h3 {
+				font-size: 17px;
+				color: var(--text);
+				margin-bottom: 0;
+			}
+			.confirm-modal p {
 				font-size: 14px;
+				color: var(--text-mid);
+				margin: 10px 0 24px;
+				line-height: 1.5;
 			}
-			.empty-state-icon {
-				font-size: 40px;
-				margin-bottom: 12px;
+			.confirm-actions {
+				display: flex;
+				gap: 10px;
+				justify-content: center;
 			}
-
-			/* ── RESPONSIVE ── */
-			@media (max-width: 1100px) {
-				.contractors-grid {
-					grid-template-columns: repeat(2, 1fr);
-				}
-				.kpi-grid {
-					grid-template-columns: repeat(2, 1fr);
-				}
+			.btn-danger {
+				background: var(--red);
+				color: #fff;
+				border: none;
+				padding: 9px 20px;
+				border-radius: 10px;
+				font-size: 13px;
+				font-weight: 600;
+				cursor: pointer;
+				font-family: 'Geologica', sans-serif;
+				transition: opacity 0.15s;
 			}
-			@media (max-width: 700px) {
-				body {
-					padding: 16px;
-				}
-				.contractors-grid {
-					grid-template-columns: 1fr;
-				}
-				.kpi-grid {
-					grid-template-columns: 1fr 1fr;
-				}
-				.topbar {
-					flex-direction: column;
-					align-items: flex-start;
-					gap: 12px;
-				}
-				.search-input {
-					width: 100%;
-				}
+			.btn-danger:hover {
+				opacity: 0.85;
 			}
 		</style>
 	</head>
-	<body>
+	<body class="page-body">
 		<!-- TOPBAR -->
 		<div class="topbar">
 			<div class="topbar-left">
@@ -442,19 +98,19 @@
 				<div class="kpi-sub">активных партнёров</div>
 			</div>
 			<div class="kpi-card">
-				<div class="kpi-label">Общая выручка</div>
+				<div class="kpi-label">Общая прибыль</div>
 				<div class="kpi-val" id="kpi-revenue">—</div>
-				<div class="kpi-sub">▲ +18%</div>
+				<div class="kpi-sub">из продаж</div>
 			</div>
 			<div class="kpi-card">
 				<div class="kpi-label">Всего заказов</div>
 				<div class="kpi-val" id="kpi-orders">—</div>
-				<div class="kpi-sub">▲ +12%</div>
+				<div class="kpi-sub">по всем партнёрам</div>
 			</div>
 			<div class="kpi-card">
 				<div class="kpi-label">Топ контрагент</div>
 				<div class="kpi-val-sm" id="kpi-top">—</div>
-				<div class="kpi-sub">по выручке</div>
+				<div class="kpi-sub">по прибыли</div>
 			</div>
 		</div>
 
@@ -483,13 +139,52 @@
 						<th>Email</th>
 						<th>Телефон</th>
 						<th>Заказов</th>
-						<th>Выручка</th>
-						<th>Рейтинг</th>
+						<th>Прибыль</th>
+						<th></th>
 					</tr>
 				</thead>
 				<tbody id="contractors-tbody"></tbody>
 			</table>
 		</div>
+
+		<!-- МОДАЛКА: Добавить / Редактировать -->
+		<div class="modal-overlay" id="contractorModal">
+			<div class="modal">
+				<div class="modal-header">
+					<div class="modal-title" id="modal-title">➕ Новый контрагент</div>
+					<button class="modal-close" id="modalClose">✕</button>
+				</div>
+				<div class="modal-field">
+					<label>Название / ФИО</label>
+					<input type="text" id="m-name" placeholder="ООО Ромашка" />
+				</div>
+				<div class="modal-field">
+					<label>Email</label>
+					<input type="email" id="m-email" placeholder="info@romashka.ru" />
+				</div>
+				<div class="modal-field">
+					<label>Телефон</label>
+					<input type="text" id="m-phone" placeholder="+7 900 000-00-00" />
+				</div>
+				<div class="modal-footer">
+					<button class="btn btn-outline" id="modalCancel">Отмена</button>
+					<button class="btn btn-primary" id="modalSave">Сохранить</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- МОДАЛКА: Подтверждение удаления -->
+		<div class="modal-overlay" id="confirmModal">
+			<div class="confirm-modal">
+				<h3>🗑 Удалить контрагента?</h3>
+				<p id="confirm-text">Это действие нельзя отменить.</p>
+				<div class="confirm-actions">
+					<button class="btn btn-outline" id="confirmCancel">Отмена</button>
+					<button class="btn-danger" id="confirmDelete">Удалить</button>
+				</div>
+			</div>
+		</div>
+
+		<script type="module" src="../viewmodels/contractors.js"></script>
 	</body>
-	<script src="../viewmodels/contractors.js"></script>
 </html>
