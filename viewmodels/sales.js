@@ -7,20 +7,20 @@
 
 import { Timestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js'
 import {
+	calcMultiProfit,
+	calcSalesKPI,
+	collectMultiItems,
+	filterSales,
+} from '../../models/salesModel.js'
+import {
 	addItem,
 	deleteItem,
 	getGoods,
 	getSales,
 	updateItem,
 } from '../../services/firebaseService.js'
+import { navigate, Routes } from '../../services/router.js'
 import { normalizeDates } from '../../services/utils.js'
-import { navigate, Routes } from '../services/router.js'
-import {
-	calcMultiProfit,
-	calcSalesKPI,
-	collectMultiItems,
-	filterSales,
-} from '/models/salesModel.js'
 import {
 	fillContractorFilter,
 	fillGoodsDropdown,
@@ -33,7 +33,7 @@ import {
 	switchToMultiMode,
 	switchToSingleMode,
 	updateMultiProfitDisplay,
-} from '/view/salesView.js'
+} from '../../view/salesView.js'
 
 // ── СОСТОЯНИЕ ─────────────────────────────────────────────────────────────────
 let allSales = []
@@ -450,6 +450,8 @@ function clearModal() {
 	document.getElementById('multi-list').innerHTML = ''
 	document.getElementById('multi-profit').textContent = '0 ₽'
 	document.getElementById('m-date-multi').value = ''
+	// Всегда возвращаем одиночный режим при закрытии
+	switchToSingleMode(false)
 }
 
 function setStockHint(id, text, isWarn) {
