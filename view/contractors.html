@@ -9,70 +9,6 @@
 			rel="stylesheet"
 		/>
 		<link rel="stylesheet" href="../view/styles/root.css" />
-		<style>
-			.action-btn {
-				background: none;
-				border: none;
-				cursor: pointer;
-				padding: 4px 7px;
-				border-radius: 7px;
-				font-size: 14px;
-				transition: background 0.15s;
-				line-height: 1;
-			}
-			.action-btn:hover {
-				background: var(--bg);
-			}
-			.action-btn.delete:hover {
-				background: #ffebee;
-			}
-			.actions-cell {
-				display: flex;
-				gap: 2px;
-				align-items: center;
-			}
-			.confirm-modal {
-				background: var(--white);
-				border-radius: var(--radius);
-				padding: 28px;
-				width: 100%;
-				max-width: 380px;
-				box-shadow: 0 8px 40px rgba(21, 101, 192, 0.18);
-				animation: modalIn 0.2s ease;
-				text-align: center;
-			}
-			.confirm-modal h3 {
-				font-size: 17px;
-				color: var(--text);
-				margin-bottom: 0;
-			}
-			.confirm-modal p {
-				font-size: 14px;
-				color: var(--text-mid);
-				margin: 10px 0 24px;
-				line-height: 1.5;
-			}
-			.confirm-actions {
-				display: flex;
-				gap: 10px;
-				justify-content: center;
-			}
-			.btn-danger {
-				background: var(--red);
-				color: #fff;
-				border: none;
-				padding: 9px 20px;
-				border-radius: 10px;
-				font-size: 13px;
-				font-weight: 600;
-				cursor: pointer;
-				font-family: 'Geologica', sans-serif;
-				transition: opacity 0.15s;
-			}
-			.btn-danger:hover {
-				opacity: 0.85;
-			}
-		</style>
 	</head>
 	<body class="page-body">
 		<!-- TOPBAR -->
@@ -81,47 +17,33 @@
 				<a class="btn-back" href="index.html">← Главная</a>
 				<div>
 					<h1>Контрагенты</h1>
-					<div class="topbar-date" id="page-date"></div>
+					<div class="topbar-date" id="contractors-date"></div>
 				</div>
 			</div>
 			<div class="topbar-actions">
-				<button class="btn btn-outline" id="resetBtn">↺ Сбросить</button>
 				<button class="btn btn-primary" id="addBtn">+ Добавить</button>
 			</div>
 		</div>
 
 		<!-- KPI -->
-		<div class="kpi-grid">
+		<div class="kpi-grid kpi-grid-2">
 			<div class="kpi-card">
 				<div class="kpi-label">Всего контрагентов</div>
 				<div class="kpi-val" id="kpi-total">—</div>
 				<div class="kpi-sub">активных партнёров</div>
 			</div>
 			<div class="kpi-card">
-				<div class="kpi-label">Общая прибыль</div>
-				<div class="kpi-val" id="kpi-revenue">—</div>
-				<div class="kpi-sub">из продаж</div>
-			</div>
-			<div class="kpi-card">
-				<div class="kpi-label">Всего заказов</div>
-				<div class="kpi-val" id="kpi-orders">—</div>
-				<div class="kpi-sub">по всем партнёрам</div>
-			</div>
-			<div class="kpi-card">
 				<div class="kpi-label">Топ контрагент</div>
-				<div class="kpi-val-sm" id="kpi-top">—</div>
+				<div class="kpi-val kpi-val--md" id="kpi-top">—</div>
 				<div class="kpi-sub">по прибыли</div>
 			</div>
 		</div>
-
-		<!-- КАРТОЧКИ -->
-		<div class="contractors-grid" id="contractors-grid"></div>
 
 		<!-- ТАБЛИЦА -->
 		<div class="card">
 			<div class="card-title">
 				Детализация
-				<div style="display: flex; gap: 10px; align-items: center">
+				<div class="table-toolbar">
 					<input
 						class="search-input"
 						id="searchInput"
@@ -138,7 +60,7 @@
 						<th>Контрагент</th>
 						<th>Email</th>
 						<th>Телефон</th>
-						<th>Заказов</th>
+						<th>Продано товаров</th>
 						<th>Прибыль</th>
 						<th></th>
 					</tr>
@@ -147,7 +69,7 @@
 			</table>
 		</div>
 
-		<!-- МОДАЛКА: Добавить / Редактировать -->
+		<!-- МОДАЛКА: ДОБАВИТЬ / РЕДАКТИРОВАТЬ -->
 		<div class="modal-overlay" id="contractorModal">
 			<div class="modal">
 				<div class="modal-header">
@@ -156,15 +78,15 @@
 				</div>
 				<div class="modal-field">
 					<label>Название / ФИО</label>
-					<input type="text" id="m-name" placeholder="ООО Ромашка" />
+					<input type="text" id="m-name" />
 				</div>
 				<div class="modal-field">
 					<label>Email</label>
-					<input type="email" id="m-email" placeholder="info@romashka.ru" />
+					<input type="email" id="m-email" />
 				</div>
 				<div class="modal-field">
 					<label>Телефон</label>
-					<input type="text" id="m-phone" placeholder="+7 900 000-00-00" />
+					<input type="tel" id="m-phone" />
 				</div>
 				<div class="modal-footer">
 					<button class="btn btn-outline" id="modalCancel">Отмена</button>
@@ -173,7 +95,7 @@
 			</div>
 		</div>
 
-		<!-- МОДАЛКА: Подтверждение удаления -->
+		<!-- МОДАЛКА: УДАЛИТЬ -->
 		<div class="modal-overlay" id="confirmModal">
 			<div class="confirm-modal">
 				<h3>🗑 Удалить контрагента?</h3>
@@ -185,6 +107,6 @@
 			</div>
 		</div>
 
-		<script type="module" src="../viewmodels/contractors.js"></script>
+		<script type="module" src="/viewmodels/contractors.js"></script>
 	</body>
 </html>
