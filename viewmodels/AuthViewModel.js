@@ -1,76 +1,70 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js'
-import {
-	createUserWithEmailAndPassword,
-	getAuth,
-	signInWithEmailAndPassword,
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js'
+// ── AuthViewModel.js ─────────────────────────────────────────────────────────
+// Логика формы авторизации/регистрации
+// Firebase уже инициализирован в firebaseService.js — дублирование убрано
 
-// 🔹 Firebase конфиг
-const firebaseConfig = {
-	apiKey: 'AIzaSyD_mvSHO3Mt_lk4iM8gIMCoqfK63-3Qvis',
-	authDomain: 'praktikask-caa0b.firebaseapp.com',
-	projectId: 'praktikask-caa0b',
-	storageBucket: 'praktikask-caa0b.firebasestorage.app',
-	messagingSenderId: '638525976207',
-	appId: '1:638525976207:web:865c01a5b7981e0d7a8afa',
-}
+import { login, register } from '../../services/firebaseService.js'
+import { navigate, Routes } from '../services/router.js'
 
-// 🔹 Инициализация Firebase
-const app = initializeApp(firebaseConfig)
-const auth = getAuth(app)
-
-// 🔹 Элементы формы
-const emailInput = document.getElementById('email')
-const passwordInput = document.getElementById('password')
+// ── DOM ───────────────────────────────────────────────────────────────────────
+const formTitle = document.getElementById('formTitle')
 const submitBtn = document.getElementById('submitBtn')
 const toggleBtn = document.getElementById('toggleMode')
 const toggleText = document.getElementById('toggleText')
-const formTitle = document.getElementById('formTitle')
 const authForm = document.getElementById('authForm')
+const authError = document.getElementById('authError')
 
 let isLoginMode = true
 
-// 🔹 Переключение режима Вход / Регистрация
+// ── ПЕРЕКЛЮЧЕНИЕ РЕЖИМА ───────────────────────────────────────────────────────
 toggleBtn.addEventListener('click', () => {
 	isLoginMode = !isLoginMode
-
-	if (isLoginMode) {
-		formTitle.textContent = 'Авторизация'
-		submitBtn.textContent = 'Войти'
-		toggleText.textContent = 'Нет аккаунта?'
-		toggleBtn.textContent = 'Зарегистрироваться'
-	} else {
-		formTitle.textContent = 'Регистрация'
-		submitBtn.textContent = 'Создать аккаунт'
-		toggleText.textContent = 'Уже есть аккаунт?'
-		toggleBtn.textContent = 'Войти'
-	}
+	formTitle.textContent = isLoginMode ? 'С возвращением!' : 'Регистрация'
+	submitBtn.textContent = isLoginMode ? 'Войти' : 'Создать аккаунт'
+	toggleText.textContent = isLoginMode ? 'Нет аккаунта?' : 'Уже есть аккаунт?'
+	toggleBtn.textContent = isLoginMode ? 'Зарегистрироваться' : 'Войти'
+	authError.style.display = 'none'
 })
 
-// 🔹 Обработка submit формы
+// ── SUBMIT ────────────────────────────────────────────────────────────────────
 authForm.addEventListener('submit', async e => {
-	e.preventDefault() // предотвращаем перезагрузку страницы
+	e.preventDefault()
 
-	const email = emailInput.value.trim()
-	const password = passwordInput.value.trim()
+	const email = document.getElementById('email').value.trim()
+	const password = document.getElementById('password').value.trim()
 
 	if (!email || !password) {
-		alert('Заполните все поля')
+		showError('Заполните все поля')
 		return
 	}
 
-	try {
-		if (isLoginMode) {
-			// Вход
-			await signInWithEmailAndPassword(auth, email, password)
-		} else {
-			// Регистрация
-			await createUserWithEmailAndPassword(auth, email, password)
-		}
+	submitBtn.disabled = true
+	submitBtn.textContent = '⏳ Загрузка...'
 
-		// После успешного входа/регистрации
-		window.location.href = 'index.html'
-	} catch (error) {
-		alert(error.message)
+	try {
+		isLoginMode ? await login(email, password) : await register(email, password)
+		navigate(Routes.DASHBOARD)
+	} catch (err) {
+		showError(getErrorMessage(err.code))
+	} finally {
+		submitBtn.disabled = false
+		submitBtn.textContent = isLoginMode ? 'Войти' : 'Создать аккаунт'
 	}
 })
+
+// ── ХЕЛПЕРЫ ───────────────────────────────────────────────────────────────────
+function showError(msg) {
+	authError.textContent = msg
+	authError.style.display = 'block'
+}
+
+function getErrorMessage(code) {
+	const messages = {
+		'auth/user-not-found': 'Пользователь не найден',
+		'auth/wrong-password': 'Неверный пароль',
+		'auth/email-already-in-use': 'Email уже используется',
+		'auth/weak-password': 'Пароль слишком короткий (мин. 6 символов)',
+		'auth/invalid-email': 'Неверный формат email',
+		'auth/invalid-credential': 'Неверный email или пароль',
+	}
+	return messages[code] || 'Ошибка авторизации. Попробуйте снова.'
+}
