@@ -2,7 +2,7 @@
 // Отвечает только за отображение: предпросмотр таблицы, статус экспорта.
 // Не содержит бизнес-логики и не делает запросы к Firebase.
 
-import { REPORT_COLS, calcTotals, saleToRow } from '/models/reportsModel.js'
+import { REPORT_COLS, calcTotals, saleToRow } from '../models/Reportsmodel.js'
 
 // ── ПРЕДПРОСМОТР ДАННЫХ ───────────────────────────────────────────────────────
 export function renderPreview(sales) {
