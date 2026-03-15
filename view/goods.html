@@ -9,6 +9,7 @@
 			rel="stylesheet"
 		/>
 		<link rel="stylesheet" href="../view/styles/root.css" />
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 	</head>
 	<body class="page-body">
 		<!-- TOPBAR -->
@@ -22,6 +23,7 @@
 			</div>
 			<div class="topbar-actions">
 				<button class="btn btn-outline" id="resetBtn">↺ Сбросить</button>
+				<button class="btn btn-outline" id="importBtn">📥 Импорт Excel</button>
 				<button class="btn btn-primary" id="addBtn">+ Добавить товар</button>
 			</div>
 		</div>
@@ -36,7 +38,7 @@
 			<div class="kpi-card">
 				<div class="kpi-label">Общая стоимость</div>
 				<div class="kpi-val" id="kpi-sum">—</div>
-				<div class="kpi-sub">▲ +5%</div>
+				<div class="kpi-sub">закупочная</div>
 			</div>
 			<div class="kpi-card">
 				<div class="kpi-label">Средняя цена</div>
@@ -68,7 +70,6 @@
 					<span class="badge badge-blue" id="count-badge">0 товаров</span>
 				</div>
 			</div>
-
 			<table>
 				<thead>
 					<tr>
@@ -76,39 +77,148 @@
 						<th>Название</th>
 						<th>Поставщик</th>
 						<th>Дата</th>
-						<th>Цена</th>
+						<th>Кол-во</th>
+						<th>Штрих-код</th>
+						<th>Закуп. цена</th>
+						<th>Прод. цена</th>
+						<th></th>
 					</tr>
 				</thead>
 				<tbody id="goods-tbody"></tbody>
 			</table>
 		</div>
 
-		<!-- МОДАЛЬНОЕ ОКНО: Добавить товар -->
+		<!-- МОДАЛКА: ДОБАВИТЬ / РЕДАКТИРОВАТЬ -->
 		<div class="modal-overlay" id="goodModal">
-			<div class="modal">
+			<div class="modal modal--wide">
 				<div class="modal-header">
-					<div class="modal-title">➕ Новый товар</div>
+					<div class="modal-title" id="good-modal-title">➕ Новый товар</div>
 					<button class="modal-close" id="modalClose">✕</button>
 				</div>
-				<div class="modal-field">
-					<label>Название товара</label>
-					<input type="text" id="m-name" />
+				<!-- Одиночный режим -->
+				<div id="edit-fields">
+					<div class="modal-field">
+						<label>Название товара</label>
+						<input type="text" id="m-name" />
+					</div>
+					<div class="modal-field">
+						<label>Поставщик</label>
+						<input type="text" id="m-contractor" />
+					</div>
+					<div class="grid-2">
+						<div class="modal-field">
+							<label>Количество (шт)</label>
+							<input type="number" id="m-qty" min="1" value="1" />
+						</div>
+						<div class="modal-field">
+							<label>Штрих-код</label>
+							<input type="text" id="m-barcode" placeholder="необязательно" />
+						</div>
+					</div>
+					<div class="grid-2">
+						<div class="modal-field">
+							<label>Закуп. цена (₽)</label>
+							<input type="number" id="m-price" min="0" />
+						</div>
+						<div class="modal-field">
+							<label>Прод. цена (₽)</label>
+							<input type="number" id="m-sell-price" min="0" />
+						</div>
+					</div>
+					<div class="modal-field">
+						<label>Дата поступления</label>
+						<input type="date" id="m-date" />
+					</div>
+				</div>
+				<!-- Мульти-режим -->
+				<div id="multi-items-wrap" class="hidden">
+					<div id="multi-items-list"></div>
+					<div class="multi-total-row">
+						<span>Итого закупка:</span>
+						<span id="multi-total">0 ₽</span>
+					</div>
+				</div>
+				<div class="modal-footer modal-footer--spread">
+					<button class="btn btn-outline" id="addMoreBtn">
+						+ Добавить ещё товар
+					</button>
+					<div class="modal-footer-actions">
+						<button class="btn btn-outline" id="modalCancel">Отмена</button>
+						<button class="btn btn-primary" id="modalSave">Сохранить</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- МОДАЛКА: ПРОДАТЬ -->
+		<div class="modal-overlay" id="sellModal">
+			<div class="modal modal--wide">
+				<div class="modal-header">
+					<div class="modal-title">💸 Продать товар</div>
+					<button class="modal-close" id="sellModalClose">✕</button>
+				</div>
+				<div id="sell-items-list"></div>
+				<div class="modal-field modal-field--mt">
+					<label>Контрагент (поставщик)</label>
+					<input type="text" id="s-contractor" readonly />
 				</div>
 				<div class="modal-field">
-					<label>Поставщик</label>
-					<input type="text" id="m-contractor" />
+					<label>Дата продажи</label>
+					<input type="date" id="s-date" />
 				</div>
-				<div class="modal-field">
-					<label>Цена (₽)</label>
-					<input type="number" id="m-price" min="0" />
+				<div id="sell-error" class="sell-error hidden"></div>
+				<div class="modal-footer modal-footer--spread">
+					<button class="btn btn-outline" id="sellAddMoreBtn">
+						+ Продать ещё товар
+					</button>
+					<div class="modal-footer-actions">
+						<button class="btn btn-outline" id="sellModalCancel">Отмена</button>
+						<button class="btn btn-primary" id="sellSaveBtn">💸 Продать</button>
+					</div>
 				</div>
-				<div class="modal-field">
-					<label>Дата поступления</label>
-					<input type="date" id="m-date" />
+			</div>
+		</div>
+
+		<!-- МОДАЛКА: ИМПОРТ -->
+		<div class="modal-overlay" id="importModal">
+			<div class="import-modal">
+				<div class="import-modal-header">
+					<div class="import-modal-title">📥 Импорт товаров из Excel</div>
+					<button class="modal-close" id="importModalClose">✕</button>
 				</div>
-				<div class="modal-footer">
-					<button class="btn btn-outline" id="modalCancel">Отмена</button>
-					<button class="btn btn-primary" id="modalSave">Сохранить</button>
+				<div class="drop-zone" id="importDropZone">
+					<div class="drop-zone-icon">📂</div>
+					<div class="drop-zone-title">Перетащите .xlsx файл сюда</div>
+					<div class="drop-zone-sub">или нажмите для выбора</div>
+					<input
+						type="file"
+						id="importFileInput"
+						accept=".xlsx,.xls"
+						class="hidden"
+					/>
+				</div>
+				<div class="import-hint">
+					<b>Колонки:</b> A — Название | B — Контрагент | C — Дата | D — Закуп.
+					цена | E — Прод. цена | F — Штрих-код | G — Количество
+				</div>
+				<div class="import-status" id="importStatus"></div>
+				<div class="modal-footer modal-field--mt">
+					<button class="btn btn-outline" id="importModalCancel">Отмена</button>
+					<button class="btn btn-primary" id="importConfirmBtn" disabled>
+						⬆ Загрузить в базу
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- МОДАЛКА: УДАЛИТЬ -->
+		<div class="modal-overlay" id="confirmModal">
+			<div class="confirm-modal">
+				<h3>🗑 Удалить товар?</h3>
+				<p id="confirm-text">Это действие нельзя отменить.</p>
+				<div class="confirm-actions">
+					<button class="btn btn-outline" id="confirmCancel">Отмена</button>
+					<button class="btn-danger" id="confirmDelete">Удалить</button>
 				</div>
 			</div>
 		</div>
