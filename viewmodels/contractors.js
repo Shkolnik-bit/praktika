@@ -10,20 +10,20 @@ import {
 	getContractors,
 	getSales,
 	updateItem,
-} from '../../services/firebaseService.js'
-import { normalizeDates } from '../../services/utils.js'
+} from '../services/firebaseService.js'
+import { normalizeDates } from '../services/Utils.js'
 import {
 	filterContractors,
 	findTopContractor,
 	getContractorStats,
 	sortByProfit,
-} from '/models/contractorsModel.js'
+} from '../models/Contractorsmodel.js'
 import {
 	renderKPI,
 	renderTable,
 	showError,
 	showLoading,
-} from '/view/contractorsView.js'
+} from '../view/Contractorsview.js'
 
 // ── СОСТОЯНИЕ ─────────────────────────────────────────────────────────────────
 let allContractors = []

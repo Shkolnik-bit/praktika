@@ -12,15 +12,15 @@ import {
 	getGoods,
 	getSales,
 	updateItem,
-} from '../../services/firebaseService.js'
-import { normalizeDates } from '../../services/utils.js'
+} from '../services/firebaseService.js'
+import { normalizeDates } from '../services/Utils.js'
 import { navigate, Routes } from '../services/router.js'
 import {
 	calcMultiProfit,
 	calcSalesKPI,
 	collectMultiItems,
 	filterSales,
-} from '/models/salesModel.js'
+} from '../models/Salesmodel.js'
 import {
 	fillContractorFilter,
 	fillGoodsDropdown,
@@ -33,7 +33,7 @@ import {
 	switchToMultiMode,
 	switchToSingleMode,
 	updateMultiProfitDisplay,
-} from '/view/salesView.js'
+} from '../view/Salesview.js'
 
 // ── СОСТОЯНИЕ ─────────────────────────────────────────────────────────────────
 let allSales = []

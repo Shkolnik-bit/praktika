@@ -4,14 +4,14 @@
 //   2. Передаёт в Model для обработки
 //   3. Передаёт результат в View для отображения
 
-import { getSales } from '../../services/firebaseService.js'
-import { buildXlsxData, filterAndSort } from '/models/reportsModel.js'
-import { setPageDate, toDateStr } from '/services/Utils.js'
+import { getSales } from '../services/firebaseService.js'
+import { buildXlsxData, filterAndSort } from '../models/Reportsmodel.js'
+import { setPageDate, toDateStr } from '../services/Utils.js'
 import {
 	fillContractorSelect,
 	renderPreview,
 	showExportResult,
-} from '/view/reportsView.js'
+} from '../view/Reportsview.js'
 
 let allSales = []
 

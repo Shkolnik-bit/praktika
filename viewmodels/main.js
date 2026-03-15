@@ -8,20 +8,20 @@ import {
 	buildStats,
 	calcTotals,
 	groupProfitByDate,
-} from '../../models/dashboardModel.js'
+} from '../models/Dashboardmodel.js'
 import {
 	getContractors,
 	getSales,
 	logout,
-} from '../../services/firebaseService.js'
-import { navigate, Routes } from '../../services/router.js'
-import { normalizeDates, setPageDate } from '../../services/utils.js'
+} from '../services/firebaseService.js'
+import { navigate, Routes } from '../services/router.js'
+import { normalizeDates, setPageDate } from '../services/Utils.js'
 import {
 	renderDonut,
 	renderError,
 	renderKPI,
 	renderLineChart,
-} from '../../view/dashboardView.js'
+} from '../view/Dashboardview.js'
 
 // ── СТАРТ ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {

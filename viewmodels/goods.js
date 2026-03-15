@@ -11,8 +11,8 @@ import {
 	getContractors,
 	getGoods,
 	updateItem,
-} from '../../services/firebaseService.js'
-import { normalizeDates } from '../../services/utils.js'
+} from '../services/firebaseService.js'
+import { normalizeDates } from '../services/Utils.js'
 import {
 	calcGoodsKPI,
 	calcMultiTotal,
@@ -21,7 +21,7 @@ import {
 	normalizeName,
 	normKey,
 	parseDate,
-} from '/models/goodsModel.js'
+} from '../models/goodsModel.js'
 import {
 	addSellRow,
 	fillContractorSelect,
@@ -38,7 +38,7 @@ import {
 	switchToMultiMode,
 	switchToSingleMode,
 	updateMultiTotalDisplay,
-} from '/view/goodsView.js'
+} from '../view/Goodsview.js'
 
 // ── СОСТОЯНИЕ ─────────────────────────────────────────────────────────────────
 let allGoods = []
