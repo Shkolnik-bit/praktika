@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>СкладПро — Продажи</title>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<link rel="stylesheet" href="../view/styles/root.css" />
+	</head>
+	<body class="page-body">
+		<!-- TOPBAR -->
+		<div class="topbar">
+			<div class="topbar-left">
+				<a class="btn-back" href="index.html">← Главная</a>
+				<div>
+					<h1>Продажи</h1>
+					<div class="topbar-date" id="sales-date"></div>
+				</div>
+			</div>
+			<div class="topbar-actions">
+				<button class="btn btn-outline" id="resetBtn">↺ Сбросить</button>
+				<button class="btn btn-outline" id="exportBtn">⬇ Экспорт Excel</button>
+				<button class="btn btn-primary" id="addSaleBtn">
+					+ Добавить продажу
+				</button>
+			</div>
+		</div>
+
+		<!-- KPI -->
+		<div class="kpi-grid kpi-grid-3">
+			<div class="kpi-card">
+				<div class="kpi-label">Всего продаж</div>
+				<div class="kpi-val" id="kpi-total">—</div>
+				<div class="kpi-sub">записей</div>
+			</div>
+			<div class="kpi-card">
+				<div class="kpi-label">Общая прибыль</div>
+				<div class="kpi-val" id="kpi-revenue">—</div>
+				<div class="kpi-sub">от продаж</div>
+			</div>
+			<div class="kpi-card">
+				<div class="kpi-label">Средний чек</div>
+				<div class="kpi-val" id="kpi-avg">—</div>
+				<div class="kpi-sub">за единицу</div>
+			</div>
+		</div>
+
+		<!-- ФИЛЬТРЫ -->
+		<div class="card">
+			<div class="card-title">Фильтры</div>
+			<div class="filters">
+				<div>
+					<label class="field-label-sm">Контрагент</label>
+					<select id="f-contractor">
+						<option value="">Все</option>
+					</select>
+				</div>
+				<div>
+					<label class="field-label-sm">Дата от</label>
+					<input type="date" id="f-from" />
+				</div>
+				<div>
+					<label class="field-label-sm">Дата до</label>
+					<input type="date" id="f-to" />
+				</div>
+				<div>
+					<button class="btn btn-primary" id="applyBtn" style="width: 100%">
+						Применить
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- ТАБЛИЦА -->
+		<div class="card">
+			<div class="card-title">
+				Список продаж
+				<span class="badge badge-blue" id="count-badge">0 записей</span>
+			</div>
+			<table>
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Товар</th>
+						<th>Контрагент</th>
+						<th>Дата</th>
+						<th>Кол-во</th>
+						<th>Штрих-код</th>
+						<th>Цена продажи</th>
+						<th>Закуп. цена</th>
+						<th>Прибыль</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody id="sales-tbody"></tbody>
+			</table>
+		</div>
+
+		<!-- МОДАЛКА: ДОБАВИТЬ / РЕДАКТИРОВАТЬ -->
+		<div class="modal-overlay" id="saleModal">
+			<div class="modal modal--wide">
+				<div class="modal-header">
+					<div class="modal-title" id="modal-title">➕ Новая продажа</div>
+					<button class="modal-close" id="modalClose">✕</button>
+				</div>
+
+				<!-- Одиночный режим -->
+				<div id="edit-fields">
+					<div class="sale-row" id="single-sale-row">
+						<div class="sale-row-header"><span>Позиция 1</span></div>
+						<div class="modal-field">
+							<label>Товар</label>
+							<select id="m-good"></select>
+						</div>
+						<div class="grid-2">
+							<div class="modal-field">
+								<label>Контрагент (поставщик)</label>
+								<input type="text" id="m-contractor" readonly />
+							</div>
+							<div class="modal-field">
+								<label>Штрих-код</label>
+								<input type="text" id="m-barcode" readonly />
+							</div>
+						</div>
+						<div class="grid-3">
+							<div class="modal-field">
+								<label>Кол-во</label>
+								<input type="number" id="m-qty" min="1" value="1" />
+								<div class="stock-hint" id="m-stock-hint">На складе: — шт.</div>
+							</div>
+							<div class="modal-field">
+								<label>Цена продажи (₽)</label>
+								<input type="number" id="m-price" min="0" />
+							</div>
+							<div class="modal-field">
+								<label>Закуп. цена (₽)</label>
+								<input type="number" id="m-purchase" min="0" readonly />
+							</div>
+						</div>
+						<input type="hidden" id="m-name" />
+					</div>
+					<div class="modal-field modal-field--mt">
+						<label>Дата продажи</label>
+						<input type="date" id="m-date" />
+					</div>
+				</div>
+
+				<!-- Мульти-режим -->
+				<div id="multi-wrap" style="display: none">
+					<div id="multi-list"></div>
+					<div class="modal-field modal-field--mt">
+						<label>Дата продажи (общая для всех позиций)</label>
+						<input type="date" id="m-date-multi" />
+					</div>
+					<div class="multi-total-row">
+						<span>Итого прибыль:</span>
+						<span id="multi-profit" class="multi-profit">0 ₽</span>
+					</div>
+				</div>
+
+				<input type="hidden" id="m-contractor-multi" />
+
+				<div class="modal-footer modal-footer--spread">
+					<button class="btn btn-outline" id="addMoreBtn">
+						+ Добавить ещё позицию
+					</button>
+					<div class="modal-footer-actions">
+						<button class="btn btn-outline" id="modalCancel">Отмена</button>
+						<button class="btn btn-primary" id="modalSave">Сохранить</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- МОДАЛКА: УДАЛИТЬ -->
+		<div class="modal-overlay" id="confirmModal">
+			<div class="confirm-modal">
+				<h3>🗑 Удалить запись?</h3>
+				<p id="confirm-text">Это действие нельзя отменить.</p>
+				<div class="confirm-actions">
+					<button class="btn btn-outline" id="confirmCancel">Отмена</button>
+					<button class="btn-danger" id="confirmDelete">Удалить</button>
+				</div>
+			</div>
+		</div>
+
+		<script type="module" src="/viewmodels/sales.js"></script>
+	</body>
+</html>
