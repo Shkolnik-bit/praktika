@@ -36,10 +36,17 @@
 			<div class="field-group">
 				<label class="field-label-sm" for="r-sort">Сортировка отчёта</label>
 				<select id="r-sort">
-					<option value="profit">По прибыли</option>
+					<option value="profit">По прибыли (убыванию)</option>
 					<option value="qty">По количеству проданных товаров</option>
-					<option value="date">По дате</option>
+					<option value="date">По дате (новые первые)</option>
 				</select>
+			</div>
+
+			<div class="field-group">
+				<label class="checkbox-label">
+					<input type="checkbox" id="r-group" />
+					Группировать одинаковые товары (суммировать кол-во и прибыль)
+				</label>
 			</div>
 
 			<div class="field-group">
