@@ -2,6 +2,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
 	createUserWithEmailAndPassword,
 	getAuth,
+	onAuthStateChanged,
 	signInWithEmailAndPassword,
 	signOut,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js'
@@ -10,8 +11,10 @@ import {
 	collection,
 	deleteDoc,
 	doc,
+	getDoc,
 	getDocs,
 	getFirestore,
+	setDoc,
 	updateDoc,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js'
 
@@ -29,21 +32,87 @@ const app = initializeApp(firebaseConfig)
 const auth = getAuth(app)
 const db = getFirestore(app)
 
+export { auth }
+
+// ── РОЛИ ─────────────────────────────────────────────────────────────────────
+// Текущий пользователь кэшируется в памяти: { uid, email, name, role }
+// Роли: 'admin' — полный доступ, 'manager' — без удаления
+let _currentUser = null
+
+export function getCurrentUser() {
+	return _currentUser
+}
+
+export function canDelete() {
+	return _currentUser?.role === 'admin'
+}
+
+export function isAdmin() {
+	return _currentUser?.role === 'admin'
+}
+
+// Загружает профиль пользователя из Firestore users/{uid}
+// Если документа нет — создаёт его с ролью 'manager'
+async function loadUserProfile(firebaseUser) {
+	const snap = await getDoc(doc(db, 'users', firebaseUser.uid))
+	if (snap.exists()) {
+		_currentUser = {
+			uid: firebaseUser.uid,
+			email: firebaseUser.email,
+			...snap.data(),
+		}
+	} else {
+		// Первый вход: создаём запись менеджера.
+		// Чтобы назначить админа — в Firestore Console найдите users/{uid} и поменяйте role на 'admin'
+		const newUser = {
+			email: firebaseUser.email,
+			name: firebaseUser.email.split('@')[0],
+			role: 'manager',
+		}
+		await setDoc(doc(db, 'users', firebaseUser.uid), newUser)
+		_currentUser = { uid: firebaseUser.uid, ...newUser }
+	}
+	return _currentUser
+}
+
 // ── АУТЕНТИФИКАЦИЯ ────────────────────────────────────────────────────────────
 
+// Логин — загружает роль из Firestore и возвращает { uid, email, name, role }
 export async function login(email, password) {
-	return await signInWithEmailAndPassword(auth, email, password)
+	const cred = await signInWithEmailAndPassword(auth, email, password)
+	return await loadUserProfile(cred.user)
 }
 
 export async function register(email, password) {
 	return await createUserWithEmailAndPassword(auth, email, password)
 }
 
+// Логаут — сбрасывает кэш и редиректит на логин
 export async function logout() {
-	return await signOut(auth)
+	_currentUser = null
+	await signOut(auth)
+	window.location.href = '/login.html'
 }
 
-export { auth }
+// Вызывается при старте каждой защищённой страницы.
+// Если пользователь не залогинен — редиректит на /login.html
+// Возвращает Promise<{ uid, email, name, role }>
+export function requireAuth() {
+	return new Promise((resolve, reject) => {
+		onAuthStateChanged(auth, async firebaseUser => {
+			if (!firebaseUser) {
+				window.location.href = '/login.html'
+				return
+			}
+			try {
+				const user = await loadUserProfile(firebaseUser)
+				resolve(user)
+			} catch (e) {
+				reject(e)
+			}
+		})
+	})
+}
 
 // ── УНИВЕРСАЛЬНЫЕ ХЕЛПЕРЫ ─────────────────────────────────────────────────────
 
@@ -68,8 +137,8 @@ export async function deleteItem(col, id) {
 // ── ХЕЛПЕР: Firestore Timestamp → Date ───────────────────────────────────────
 function tsToDate(val) {
 	if (!val) return null
-	if (val?.toDate) return val.toDate() // Firestore Timestamp
-	return new Date(val) // строка / число
+	if (val?.toDate) return val.toDate()
+	return new Date(val)
 }
 
 // ── СПЕЦИАЛИЗИРОВАННЫЕ ЗАПРОСЫ ────────────────────────────────────────────────
