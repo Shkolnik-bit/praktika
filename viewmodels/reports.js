@@ -4,14 +4,18 @@
 //   2. Передаёт в Model для обработки
 //   3. Передаёт результат в View для отображения
 
+import {
+	buildXlsxData,
+	filterAndSort,
+	groupSales,
+} from '../../models/reportsModel.js'
 import { getSales } from '../../services/firebaseService.js'
-import { buildXlsxData, filterAndSort } from '/models/reportsModel.js'
-import { setPageDate, toDateStr } from '/services/Utils.js'
+import { setPageDate, toDateStr } from '../../services/utils.js'
 import {
 	fillContractorSelect,
 	renderPreview,
 	showExportResult,
-} from '/view/reportsView.js'
+} from '../view/reportsView.js'
 
 let allSales = []
 
@@ -31,7 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	}
 
 	// Обновляем предпросмотр при смене любого фильтра
-	;['r-contractor', 'r-from', 'r-to', 'r-sort'].forEach(id => {
+	;['r-contractor', 'r-from', 'r-to', 'r-sort', 'r-group'].forEach(id => {
 		document.getElementById(id).addEventListener('change', refreshPreview)
 	})
 
@@ -49,14 +53,28 @@ function getFilters() {
 }
 
 // ── ОБНОВИТЬ ПРЕДПРОСМОТР ─────────────────────────────────────────────────────
+// Возвращает данные с учётом группировки если включён чекбокс
+function getProcessed() {
+	const filters = getFilters()
+	const filtered = filterAndSort(allSales, filters)
+	const doGroup = document.getElementById('r-group')?.checked
+	if (!doGroup) return filtered
+	// После группировки повторно сортируем — Object.values(map) не гарантирует порядок
+	return filterAndSort(groupSales(filtered), {
+		...filters,
+		contractor: '',
+		from: '',
+		to: '',
+	})
+}
+
 function refreshPreview() {
-	const filtered = filterAndSort(allSales, getFilters())
-	renderPreview(filtered)
+	renderPreview(getProcessed())
 }
 
 // ── ЭКСПОРТ XLSX ──────────────────────────────────────────────────────────────
 function handleExport() {
-	const filtered = filterAndSort(allSales, getFilters())
+	const filtered = getProcessed()
 	const filename = document.getElementById('r-filename').value || 'report.xlsx'
 	const btn = document.getElementById('exportBtn')
 

@@ -1,8 +1,4 @@
 // ── main.js (ViewModel) ───────────────────────────────────────────────────────
-// Точка входа дашборда. Только:
-//   1. Загружает данные через сервисы
-//   2. Передаёт данные в Model для обработки
-//   3. Передаёт результат в View для отображения
 
 import {
 	buildStats,
@@ -13,6 +9,7 @@ import {
 	getContractors,
 	getSales,
 	logout,
+	requireAuth, // НОВОЕ
 } from '../../services/firebaseService.js'
 import { navigate, Routes } from '../../services/router.js'
 import { normalizeDates, setPageDate } from '../../services/utils.js'
@@ -23,9 +20,36 @@ import {
 	renderLineChart,
 } from '../../view/dashboardView.js'
 
-// ── СТАРТ ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
 	setPageDate('today-date')
+
+	// НОВОЕ: проверяем сессию и получаем пользователя
+	let currentUser
+	try {
+		currentUser = await requireAuth()
+	} catch (e) {
+		return // requireAuth сам редиректит на /login.html
+	}
+
+	// НОВОЕ: обновляем аватар, имя и роль в сайдбаре
+	const nameEl = document.getElementById('user-name')
+	const roleEl = document.querySelector('.user-role')
+	const avatarEl = document.getElementById('user-avatar')
+
+	if (nameEl) nameEl.textContent = currentUser.name || currentUser.email
+	if (roleEl)
+		roleEl.textContent =
+			currentUser.role === 'admin' ? 'Администратор' : 'Менеджер'
+	if (avatarEl) {
+		// Берём первые две буквы имени для аватара
+		const initials = (currentUser.name || currentUser.email)
+			.split(/[\s@]/)
+			.filter(Boolean)
+			.slice(0, 2)
+			.map(w => w[0].toUpperCase())
+			.join('')
+		avatarEl.textContent = initials
+	}
 
 	// Навигация через sidebar
 	document.querySelectorAll('.nav-item[data-page]').forEach(item => {
@@ -53,15 +77,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 			getContractors(),
 		])
 
-		// Нормализуем даты через utils
 		const sales = normalizeDates(salesRaw)
 
-		// Model: вычисляем
 		const { totalProfit, totalCount } = calcTotals(sales)
 		const stats = buildStats(sales, contractorsRaw)
 		const dateEntries = groupProfitByDate(sales)
 
-		// View: отображаем
 		renderKPI({ totalProfit, totalCount, topContractor: stats[0] || null })
 		renderLineChart(dateEntries)
 		renderDonut(stats, totalCount)
