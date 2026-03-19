@@ -477,7 +477,7 @@ async function handleImportConfirm() {
 		for (const rawName of uniqueNames) {
 			const key = normKey(rawName)
 			if (!contractorMap[key]) {
-				const canonical = normalizeName(rawName)
+				const canonical = formatContractorName(rawName)
 				await addItem('contractors', { name: canonical, email: '', phone: '' })
 				contractorMap[key] = canonical
 			}
@@ -491,7 +491,7 @@ async function handleImportConfirm() {
 				? Timestamp.fromDate(new Date(row.saleDate))
 				: Timestamp.fromDate(new Date())
 			const canonical =
-				contractorMap[normKey(row.contractor)] || normalizeName(row.contractor)
+				contractorMap[normKey(row.contractor)] || formatContractorName(row.contractor)
 			const dup = findDuplicateByName(freshGoods, row.name)
 			if (dup) {
 				const newQty = (dup.qty || 1) + (row.qty || 1)
@@ -619,6 +619,28 @@ function openSell(id) {
 	document.getElementById('sell-error').classList.add('hidden')
 	addSellRow(allGoods, g, sellRowHandlers)
 	document.getElementById('sellModal').classList.add('show')
+}
+
+function formatContractorName(str) {
+    const abbrs = [
+        'ооо', 'оао', 'зао', 'пао', 'ао',
+        'ип', 'пбоюл',
+        'гуп', 'муп', 'фгуп', 'фгбу', 'фгку', 'фгаоу',
+        'унп', 'гп',
+        'нко', 'ано', 'нао', 'но',
+        'фонд', 'снт', 'тсж', 'жск', 'гск',
+        'пк', 'спк', 'нп', 'сро',
+        'кфх', 'фл', 'юл',
+    ]
+    return str
+        .split(' ')
+        .map(word => {
+            if (abbrs.includes(word.toLowerCase())) {
+                return word.toUpperCase()
+            }
+            return word.charAt(0).toUpperCase() + word.slice(1)
+        })
+        .join(' ')
 }
 
 function closeGoodModal() {
