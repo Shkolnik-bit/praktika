@@ -8,9 +8,9 @@ import {
 	buildXlsxData,
 	filterAndSort,
 	groupSales,
-} from '../../models/reportsModel.js'
-import { getSales } from '../../services/firebaseService.js'
-import { setPageDate, toDateStr } from '../../services/utils.js'
+} from '../models/reportsModel.js'
+import { getSales } from '../services/firebaseService.js'
+import { setPageDate, toDateStr } from '../services/utils.js'
 import {
 	fillContractorSelect,
 	renderPreview,
