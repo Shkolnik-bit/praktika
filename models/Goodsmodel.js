@@ -20,11 +20,28 @@ export function parseDate(val) {
 	return !isNaN(d) ? d.toISOString().slice(0, 10) : null
 }
 
-// Нормализация имени контрагента: убирает лишние пробелы
-export const normalizeName = name => (name || '').trim().replace(/\s+/g, ' ')
+// Капитализирует каждое слово: "ооо универ" → "ООО Универ"
+// Слова из 2 букв и меньше — полностью заглавные (ООО, ИП, ЗАО)
+export function normalizeName(name) {
+	return (name || '')
+		.trim()
+		.replace(/[«»""']/g, '') // убираем кавычки
+		.replace(/\s+/g, ' ') // схлопываем пробелы
+		.split(' ')
+		.map(word =>
+			word.length <= 2
+				? word.toUpperCase()
+				: word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+		)
+		.join(' ')
+}
 
-// Ключ для сравнения — lowercase
-export const normKey = name => normalizeName(name).toLowerCase()
+// Ключ для сравнения — без кавычек, без пробелов, lowercase
+export const normKey = name =>
+	(name || '')
+		.replace(/[«»""']/g, '')
+		.replace(/\s+/g, '')
+		.toLowerCase()
 
 // Считает KPI по каталогу товаров
 export function calcGoodsKPI(goods) {
@@ -60,6 +77,17 @@ export function calcMultiTotal(rows) {
 		const qty = Number(row.querySelector('[data-field="qty"]')?.value) || 1
 		return sum + price * qty
 	}, 0)
+}
+
+// Ищет существующий товар-дубликат по имени и поставщику (без учёта регистра/пробелов/кавычек)
+export function findDuplicate(allGoods, name, contractor) {
+	return (
+		allGoods.find(
+			g =>
+				normKey(g.name) === normKey(name) &&
+				normKey(g.contractor) === normKey(contractor),
+		) || null
+	)
 }
 
 // Собирает данные мульти-строк из DOM
