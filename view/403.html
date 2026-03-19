@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ru">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>СкладПро — Доступ запрещён</title>
+	<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="styles/root.css" />
+	<style>
+		body {
+			min-height: 100vh;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: var(--bg, #f0f4f8);
+			font-family: 'Geologica', sans-serif;
+		}
+		.error-card {
+			background: #fff;
+			border-radius: 20px;
+			box-shadow: 0 8px 40px rgba(0,0,0,0.10);
+			padding: 56px 48px;
+			text-align: center;
+			max-width: 440px;
+			width: 100%;
+		}
+		.error-icon {
+			font-size: 72px;
+			margin-bottom: 16px;
+		}
+		.error-code {
+			font-size: 80px;
+			font-weight: 700;
+			color: #ef5350;
+			line-height: 1;
+			margin-bottom: 8px;
+		}
+		.error-title {
+			font-size: 22px;
+			font-weight: 600;
+			color: #1a1a2e;
+			margin-bottom: 12px;
+		}
+		.error-desc {
+			font-size: 15px;
+			color: #7986cb;
+			line-height: 1.6;
+			margin-bottom: 32px;
+		}
+		.error-desc b {
+			color: #1565c0;
+		}
+		.btn-back {
+			display: inline-block;
+			padding: 12px 32px;
+			background: #1565c0;
+			color: #fff;
+			border-radius: 10px;
+			font-size: 15px;
+			font-weight: 600;
+			text-decoration: none;
+			transition: background 0.2s;
+		}
+		.btn-back:hover { background: #0d47a1; }
+		.btn-logout {
+			display: inline-block;
+			margin-left: 12px;
+			padding: 12px 24px;
+			background: transparent;
+			color: #ef5350;
+			border: 2px solid #ef5350;
+			border-radius: 10px;
+			font-size: 15px;
+			font-weight: 600;
+			cursor: pointer;
+			font-family: inherit;
+			transition: background 0.2s, color 0.2s;
+		}
+		.btn-logout:hover { background: #ef5350; color: #fff; }
+	</style>
+</head>
+<body>
+	<div class="error-card">
+		<div class="error-icon">🔒</div>
+		<div class="error-code">403</div>
+		<div class="error-title">Доступ запрещён</div>
+		<div class="error-desc">
+			У вашего аккаунта ещё нет роли.<br>
+			Обратитесь к <b>администратору</b>, чтобы он назначил вам роль<br>
+			<b>«Кассир»</b> или <b>«Администратор»</b>.
+		</div>
+		<div>
+			<a href="/view/login.html" class="btn-back">← На вход</a>
+			<button class="btn-logout" id="logoutBtn">Выйти</button>
+		</div>
+	</div>
+
+	<script type="module">
+		import { logout } from '../services/firebaseService.js'
+		document.getElementById('logoutBtn').addEventListener('click', async () => {
+			await logout()
+		})
+	</script>
+</body>
+</html>
