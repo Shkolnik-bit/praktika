@@ -42,7 +42,10 @@ authForm.addEventListener('submit', async e => {
 
 	try {
 		isLoginMode ? await login(email, password) : await register(email, password)
-		navigate(Routes.DASHBOARD)
+		const role = user?.role || null
+if (role === 'admin') navigate(Routes.DASHBOARD)
+else if (role === 'cashier') navigate(Routes.SALES)
+else navigate(Routes.FORBIDDEN)
 	} catch (err) {
 		showError(getErrorMessage(err.code))
 	} finally {
