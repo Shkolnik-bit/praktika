@@ -129,8 +129,8 @@ onAuthStateChanged(auth, async firebaseUser => {
 
 	const role = await getUserRole(firebaseUser.uid)
 
-	// Нет роли → страница 403
-	if (!role) {
+	// Нет роли или роль 'client' → страница 403
+	if (!role || role === 'client') {
 		window.location.href = '/view/403.html'
 		return
 	}
