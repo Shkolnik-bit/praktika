@@ -8,20 +8,20 @@ import {
 	getSales,
 	requireAuth,
 	updateItem,
-} from '../services/firebaseService.js'
-import { normalizeDates } from '../services/utils.js'
+} from '../../services/firebaseService.js'
+import { normalizeDates } from '../../services/utils.js'
 import {
 	filterContractors,
 	findTopContractor,
 	getContractorStats,
 	sortByProfit,
-} from '../models/contractorsModel.js'
+} from '/models/contractorsModel.js'
 import {
 	renderKPI,
 	renderTable,
 	showError,
 	showLoading,
-} from '../view/contractorsView.js'
+} from '/view/contractorsView.js'
 
 let allContractors = []
 let allSales = []
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 	// НОВОЕ: кнопка логаута
 	document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-		const { logout } = await import('../services/firebaseService.js')
+		const { logout } = await import('../../services/firebaseService.js')
 		await logout()
 	})
 
@@ -173,25 +173,25 @@ function openDelete(id) {
 }
 
 function formatContractorName(str) {
-    const abbrs = [
-        'ооо', 'оао', 'зао', 'пао', 'ао',
-        'ип', 'пбоюл',
-        'гуп', 'муп', 'фгуп', 'фгбу', 'фгку', 'фгаоу',
-        'унп', 'гп',
-        'нко', 'ано', 'нао', 'но',
-        'фонд', 'снт', 'тсж', 'жск', 'гск',
-        'пк', 'спк', 'нп', 'сро',
-        'кфх', 'фл', 'юл',
-    ]
-    return str
-        .split(' ')
-        .map(word => {
-            if (abbrs.includes(word.toLowerCase())) {
-                return word.toUpperCase()
-            }
-            return word.charAt(0).toUpperCase() + word.slice(1)
-        })
-        .join(' ')
+	const abbrs = [
+		'ооо', 'оао', 'зао', 'пао', 'ао',
+		'ип', 'пбоюл',
+		'гуп', 'муп', 'фгуп', 'фгбу', 'фгку', 'фгаоу',
+		'унп', 'гп',
+		'нко', 'ано', 'нао', 'но',
+		'фонд', 'снт', 'тсж', 'жск', 'гск',
+		'пк', 'спк', 'нп', 'сро',
+		'кфх', 'фл', 'юл',
+	]
+	return str
+		.split(' ')
+		.map(word => {
+			if (abbrs.includes(word.toLowerCase())) {
+				return word.toUpperCase()
+			}
+			return word.charAt(0).toUpperCase() + word.slice(1)
+		})
+		.join(' ')
 }
 
 function closeModal() {
