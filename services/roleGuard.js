@@ -38,16 +38,23 @@ const isAdminOnlyPage =
 	path.endsWith('reports.html') ||
 	path === '/'
 
-// Флаг: уже ли мы выходили при загрузке login.html
-// Нужен чтобы не выходить СНОВА после того как пользователь только что вошёл
-let loginPageSignedOut = false
-
-function redirectByRole(role) {
-	if (role === 'admin')        window.location.href = '/view/index.html'
-	else if (role === 'cashier') window.location.href = '/view/sales.html'
-	else                         window.location.href = '/view/403.html'
+// ── Страница входа — отдельная логика ────────────────────────────────────────
+if (isLoginPage) {
+	// Подписываемся ОДИН РАЗ — только чтобы проверить начальное состояние.
+	// Сразу отписываемся (unsubscribe), чтобы не мешать событию после входа.
+	// AuthViewModel сам обработает навигацию после успешного login().
+	const unsubscribe = onAuthStateChanged(auth, async firebaseUser => {
+		unsubscribe() // отписались — больше не слушаем это событие
+		if (firebaseUser) {
+			// Был залогинен (например кассир открыл /login.html) — выходим,
+			// показываем чистую форму входа
+			await signOut(auth)
+		}
+		// firebaseUser = null → просто показываем форму, ничего не делаем
+	})
 }
 
+// ── Вспомогательные функции ───────────────────────────────────────────────────
 async function getUserRole(uid) {
 	try {
 		const snap = await getDoc(doc(db, 'users', uid))
@@ -77,49 +84,33 @@ function applyCashierRestrictions() {
 		.observe(document.body, { childList: true, subtree: true })
 }
 
-onAuthStateChanged(auth, async firebaseUser => {
+// ── Защищённые страницы ───────────────────────────────────────────────────────
+if (!isLoginPage && !is403Page) {
+	onAuthStateChanged(auth, async firebaseUser => {
 
-	// ── Страница входа ────────────────────────────────────────────────────────
-	if (isLoginPage) {
-		if (firebaseUser && !loginPageSignedOut) {
-			// Первое срабатывание: был залогинен (например кассир) — выходим,
-			// чтобы можно было войти под другой ролью
-			loginPageSignedOut = true
-			await signOut(auth)
-			// onAuthStateChanged сработает снова с firebaseUser=null → покажет форму
+		if (!firebaseUser) {
+			window.location.href = '/view/login.html'
 			return
 		}
-		// firebaseUser=null (после выхода) или уже вышли ранее (loginPageSignedOut=true)
-		// В обоих случаях просто показываем форму входа — ничего не делаем
-		return
-	}
 
-	// ── Страница 403 ──────────────────────────────────────────────────────────
-	if (is403Page) return
+		const role = await getUserRole(firebaseUser.uid)
 
-	// ── Защищённые страницы ───────────────────────────────────────────────────
-	if (!firebaseUser) {
-		window.location.href = '/view/login.html'
-		return
-	}
-
-	const role = await getUserRole(firebaseUser.uid)
-
-	if (!role || role === 'client') {
-		window.location.href = '/view/403.html'
-		return
-	}
-
-	if (role === 'cashier' && isAdminOnlyPage) {
-		window.location.href = '/view/sales.html'
-		return
-	}
-
-	if (role === 'cashier' && isSalesPage) {
-		if (document.readyState === 'loading') {
-			document.addEventListener('DOMContentLoaded', applyCashierRestrictions)
-		} else {
-			applyCashierRestrictions()
+		if (!role || role === 'client') {
+			window.location.href = '/view/403.html'
+			return
 		}
-	}
-})
+
+		if (role === 'cashier' && isAdminOnlyPage) {
+			window.location.href = '/view/sales.html'
+			return
+		}
+
+		if (role === 'cashier' && isSalesPage) {
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', applyCashierRestrictions)
+			} else {
+				applyCashierRestrictions()
+			}
+		}
+	})
+}
