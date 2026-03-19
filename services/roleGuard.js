@@ -31,26 +31,22 @@ const path = window.location.pathname
 const isLoginPage     = path.endsWith('login.html')
 const isSalesPage     = path.endsWith('sales.html')
 const is403Page       = path.endsWith('403.html')
+const isDashboard     = path.endsWith('index.html') || path === '/'
 const isAdminOnlyPage =
-	path.endsWith('index.html') ||
+	isDashboard ||
 	path.endsWith('goods.html') ||
 	path.endsWith('contractors.html') ||
-	path.endsWith('reports.html') ||
-	path === '/'
+	path.endsWith('reports.html')
 
-// ── Страница входа — отдельная логика ────────────────────────────────────────
+// ── Страница входа ────────────────────────────────────────────────────────────
+// Подписываемся ОДИН РАЗ — только чтобы очистить старую сессию при загрузке.
+// Сразу отписываемся, чтобы не мешать событию после свежего входа.
 if (isLoginPage) {
-	// Подписываемся ОДИН РАЗ — только чтобы проверить начальное состояние.
-	// Сразу отписываемся (unsubscribe), чтобы не мешать событию после входа.
-	// AuthViewModel сам обработает навигацию после успешного login().
 	const unsubscribe = onAuthStateChanged(auth, async firebaseUser => {
-		unsubscribe() // отписались — больше не слушаем это событие
+		unsubscribe()
 		if (firebaseUser) {
-			// Был залогинен (например кассир открыл /login.html) — выходим,
-			// показываем чистую форму входа
 			await signOut(auth)
 		}
-		// firebaseUser = null → просто показываем форму, ничего не делаем
 	})
 }
 
@@ -65,6 +61,7 @@ async function getUserRole(uid) {
 }
 
 function applyCashierRestrictions() {
+	// Скрываем пункты меню сайдбара которые кассиру недоступны
 	;['dashboard', 'goods', 'contractors', 'reports'].forEach(page => {
 		document.querySelectorAll(`.nav-item[data-page="${page}"]`)
 			.forEach(el => (el.style.display = 'none'))
@@ -75,6 +72,17 @@ function applyCashierRestrictions() {
 		if (!next || next.style.display === 'none') label.style.display = 'none'
 	})
 
+	// Кнопка «← Главная» в топбаре (у неё убран href в sales.html, id="back-btn")
+	// Вешаем клик → редирект на логин
+	const backBtn = document.getElementById('back-btn') || document.querySelector('.btn-back')
+	if (backBtn) {
+		backBtn.addEventListener('click', e => {
+			e.preventDefault()
+			window.location.href = '/view/login.html'
+		})
+	}
+
+	// Скрываем кнопки удаления
 	function hideDeleteBtns() {
 		document.querySelectorAll('.delete-btn, [data-action="delete"]')
 			.forEach(btn => (btn.style.display = 'none'))
@@ -95,21 +103,36 @@ if (!isLoginPage && !is403Page) {
 
 		const role = await getUserRole(firebaseUser.uid)
 
+		// Нет роли или client → 403
 		if (!role || role === 'client') {
 			window.location.href = '/view/403.html'
 			return
 		}
 
+		// Кассир на запрещённой странице → продажи
 		if (role === 'cashier' && isAdminOnlyPage) {
 			window.location.href = '/view/sales.html'
 			return
 		}
 
+		// Кассир на странице продаж → скрываем лишнее и перехватываем кнопки
 		if (role === 'cashier' && isSalesPage) {
 			if (document.readyState === 'loading') {
 				document.addEventListener('DOMContentLoaded', applyCashierRestrictions)
 			} else {
 				applyCashierRestrictions()
+			}
+			return
+		}
+
+		// Администратор на странице продаж → btn-back ведёт на дашборд
+		if (role === 'admin' && isSalesPage) {
+			const backBtn = document.getElementById('back-btn') || document.querySelector('.btn-back')
+			if (backBtn && !backBtn.getAttribute('href')) {
+				backBtn.addEventListener('click', e => {
+					e.preventDefault()
+					window.location.href = '/view/index.html'
+				})
 			}
 		}
 	})
