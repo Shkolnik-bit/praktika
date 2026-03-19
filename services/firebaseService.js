@@ -35,8 +35,9 @@ const db = getFirestore(app)
 export { auth }
 
 // ── РОЛИ ─────────────────────────────────────────────────────────────────────
-// Текущий пользователь кэшируется в памяти: { uid, email, name, role }
-// Роли: 'admin' — полный доступ, 'manager' — без удаления
+// 'admin'   — полный доступ ко всем страницам
+// 'cashier' — только страница Продаж, без удаления
+// 'client'  — доступ закрыт, выбрасывается на 403
 let _currentUser = null
 
 export function getCurrentUser() {
@@ -51,8 +52,13 @@ export function isAdmin() {
 	return _currentUser?.role === 'admin'
 }
 
-// Загружает профиль пользователя из Firestore users/{uid}
-// Если документа нет — создаёт его с ролью 'manager'
+export function isCashier() {
+	return _currentUser?.role === 'cashier'
+}
+
+// Загружает профиль из Firestore users/{uid}
+// Новый пользователь получает роль 'client' — доступ закрыт
+// Чтобы дать доступ: Firebase Console → Firestore → users/{uid} → role: "admin" или "cashier"
 async function loadUserProfile(firebaseUser) {
 	const snap = await getDoc(doc(db, 'users', firebaseUser.uid))
 	if (snap.exists()) {
@@ -62,12 +68,10 @@ async function loadUserProfile(firebaseUser) {
 			...snap.data(),
 		}
 	} else {
-		// Первый вход: создаём запись менеджера.
-		// Чтобы назначить админа — в Firestore Console найдите users/{uid} и поменяйте role на 'admin'
 		const newUser = {
 			email: firebaseUser.email,
 			name: firebaseUser.email.split('@')[0],
-			role: null,
+			role: 'client',
 		}
 		await setDoc(doc(db, 'users', firebaseUser.uid), newUser)
 		_currentUser = { uid: firebaseUser.uid, ...newUser }
@@ -77,35 +81,57 @@ async function loadUserProfile(firebaseUser) {
 
 // ── АУТЕНТИФИКАЦИЯ ────────────────────────────────────────────────────────────
 
-// Логин — загружает роль из Firestore и возвращает { uid, email, name, role }
 export async function login(email, password) {
 	const cred = await signInWithEmailAndPassword(auth, email, password)
 	return await loadUserProfile(cred.user)
 }
 
+// register теперь тоже создаёт профиль в Firestore с ролью 'client'
 export async function register(email, password) {
-	return await createUserWithEmailAndPassword(auth, email, password)
+	const cred = await createUserWithEmailAndPassword(auth, email, password)
+	return await loadUserProfile(cred.user)
 }
 
-// Логаут — сбрасывает кэш и редиректит на логин
 export async function logout() {
 	_currentUser = null
 	await signOut(auth)
-	window.location.href = '/login.html'
+	window.location.href = '/view/login.html'
 }
 
-// Вызывается при старте каждой защищённой страницы.
-// Если пользователь не залогинен — редиректит на /login.html
-// Возвращает Promise<{ uid, email, name, role }>
 export function requireAuth() {
 	return new Promise((resolve, reject) => {
 		onAuthStateChanged(auth, async firebaseUser => {
 			if (!firebaseUser) {
-				window.location.href = '/login.html'
+				window.location.href = '/view/login.html'
 				return
 			}
 			try {
 				const user = await loadUserProfile(firebaseUser)
+				if (user.role === 'client' || !user.role) {
+					window.location.href = '/view/403.html'
+					return
+				}
+				resolve(user)
+			} catch (e) {
+				reject(e)
+			}
+		})
+	})
+}
+
+export function requireAdmin() {
+	return new Promise((resolve, reject) => {
+		onAuthStateChanged(auth, async firebaseUser => {
+			if (!firebaseUser) {
+				window.location.href = '/view/login.html'
+				return
+			}
+			try {
+				const user = await loadUserProfile(firebaseUser)
+				if (user.role !== 'admin') {
+					window.location.href = '/view/403.html'
+					return
+				}
 				resolve(user)
 			} catch (e) {
 				reject(e)
@@ -134,14 +160,11 @@ export async function deleteItem(col, id) {
 	await deleteDoc(doc(db, col, id))
 }
 
-// ── ХЕЛПЕР: Firestore Timestamp → Date ───────────────────────────────────────
 function tsToDate(val) {
 	if (!val) return null
 	if (val?.toDate) return val.toDate()
 	return new Date(val)
 }
-
-// ── СПЕЦИАЛИЗИРОВАННЫЕ ЗАПРОСЫ ────────────────────────────────────────────────
 
 export async function getGoods(filters = {}) {
 	const all = await getAll('goods')
