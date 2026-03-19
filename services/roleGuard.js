@@ -12,6 +12,7 @@ import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12
 import {
 	getAuth,
 	onAuthStateChanged,
+	signOut,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js'
 import {
 	doc,
@@ -109,11 +110,12 @@ onAuthStateChanged(auth, async firebaseUser => {
 	// ── Страница входа ────────────────────────────────────────────────────────
 	if (isLoginPage) {
 		if (firebaseUser) {
-			// Уже залогинен — редиректим по роли сразу
-			const role = await getUserRole(firebaseUser.uid)
-			redirectByRole(role)
+			// Если кто-то уже залогинен — разлогиниваем его.
+			// Это позволяет зайти под другой ролью без необходимости
+			// сначала нажимать «Выйти» на другой странице.
+			await signOut(auth)
 		}
-		// Не залогинен — просто остаёмся на странице входа
+		// Показываем форму входа
 		return
 	}
 
