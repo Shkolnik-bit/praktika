@@ -8,20 +8,20 @@ import {
 	getSales,
 	requireAuth,
 	updateItem,
-} from '../../services/firebaseService.js'
-import { normalizeDates } from '../../services/utils.js'
+} from '../services/firebaseService.js'
+import { normalizeDates } from '../services/utils.js'
 import {
 	filterContractors,
 	findTopContractor,
 	getContractorStats,
 	sortByProfit,
-} from '/models/contractorsModel.js'
+} from '../models/contractorsModel.js'
 import {
 	renderKPI,
 	renderTable,
 	showError,
 	showLoading,
-} from '/view/contractorsView.js'
+} from '../view/contractorsView.js'
 
 let allContractors = []
 let allSales = []
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 	// НОВОЕ: кнопка логаута
 	document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-		const { logout } = await import('../../services/firebaseService.js')
+		const { logout } = await import('../services/firebaseService.js')
 		await logout()
 	})
 
