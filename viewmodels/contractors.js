@@ -8,20 +8,20 @@ import {
 	getSales,
 	requireAuth,
 	updateItem,
-} from '../../services/firebaseService.js'
-import { normalizeDates } from '../../services/utils.js'
+} from '../services/firebaseService.js'
+import { normalizeDates } from '../services/utils.js'
 import {
 	filterContractors,
 	findTopContractor,
 	getContractorStats,
 	sortByProfit,
-} from '/models/contractorsModel.js'
+} from '../models/contractorsModel.js'
 import {
 	renderKPI,
 	renderTable,
 	showError,
 	showLoading,
-} from '/view/contractorsView.js'
+} from '../view/contractorsView.js'
 
 let allContractors = []
 let allSales = []
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 	// НОВОЕ: кнопка логаута
 	document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-		const { logout } = await import('../../services/firebaseService.js')
+		const { logout } = await import('../services/firebaseService.js')
 		await logout()
 	})
 
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	})
 
 	document.getElementById('modalSave').addEventListener('click', async () => {
-		const name = document.getElementById('m-name').value.trim()
+		const name = formatContractorName(document.getElementById('m-name').value.trim())
 		const email = document.getElementById('m-email').value.trim()
 		const phone = document.getElementById('m-phone').value.trim()
 		if (!name) {
@@ -170,6 +170,28 @@ function openDelete(id) {
 	document.getElementById('confirm-text').textContent =
 		`«${c.name}» будет удалён. Это действие нельзя отменить.`
 	document.getElementById('confirmModal').classList.add('show')
+}
+
+function formatContractorName(str) {
+    const abbrs = [
+        'ооо', 'оао', 'зао', 'пао', 'ао',
+        'ип', 'пбоюл',
+        'гуп', 'муп', 'фгуп', 'фгбу', 'фгку', 'фгаоу',
+        'унп', 'гп',
+        'нко', 'ано', 'нао', 'но',
+        'фонд', 'снт', 'тсж', 'жск', 'гск',
+        'пк', 'спк', 'нп', 'сро',
+        'кфх', 'фл', 'юл',
+    ]
+    return str
+        .split(' ')
+        .map(word => {
+            if (abbrs.includes(word.toLowerCase())) {
+                return word.toUpperCase()
+            }
+            return word.charAt(0).toUpperCase() + word.slice(1)
+        })
+        .join(' ')
 }
 
 function closeModal() {
