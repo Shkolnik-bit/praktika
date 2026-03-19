@@ -4,21 +4,21 @@ import {
 	buildStats,
 	calcTotals,
 	groupProfitByDate,
-} from '../../models/dashboardModel.js'
+} from '../models/dashboardModel.js'
 import {
 	getContractors,
 	getSales,
 	logout,
 	requireAuth, // НОВОЕ
-} from '../../services/firebaseService.js'
-import { navigate, Routes } from '../../services/router.js'
-import { normalizeDates, setPageDate } from '../../services/utils.js'
+} from '../services/firebaseService.js'
+import { navigate, Routes } from '../services/router.js'
+import { normalizeDates, setPageDate } from '../services/utils.js'
 import {
 	renderDonut,
 	renderError,
 	renderKPI,
 	renderLineChart,
-} from '../../view/dashboardView.js'
+} from '../view/dashboardView.js'
 
 document.addEventListener('DOMContentLoaded', async () => {
 	setPageDate('today-date')
