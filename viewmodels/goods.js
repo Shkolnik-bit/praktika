@@ -1,18 +1,16 @@
 // ── goods.js (ViewModel) ──────────────────────────────────────────────────────
-// Точка входа страницы товаров. Только:
-//   1. Загружает данные через сервисы
-//   2. Передаёт в Model для обработки
-//   3. Передаёт результат в View для отображения
 
 import { Timestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js'
 import {
-	addItem,
+	addItem, // НОВОЕ: проверка сессии
+	canDelete,
 	deleteItem,
 	getContractors,
 	getGoods,
+	requireAuth,
 	updateItem,
 } from '../services/firebaseService.js'
-import { normalizeDates } from '../services/Utils.js'
+import { normalizeDates } from '../services/utils.js'
 import {
 	calcGoodsKPI,
 	calcMultiTotal,
@@ -38,25 +36,40 @@ import {
 	switchToMultiMode,
 	switchToSingleMode,
 	updateMultiTotalDisplay,
-} from '../view/Goodsview.js'
+} from '../view/goodsView.js'
 
-// ── СОСТОЯНИЕ ─────────────────────────────────────────────────────────────────
 let allGoods = []
 let importRows = []
 let multiItems = []
 let editingId = null
 let deletingId = null
 
-// ── СТАРТ ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+	// НОВОЕ: проверяем сессию, получаем пользователя
+	let currentUser
+	try {
+		currentUser = await requireAuth()
+	} catch (e) {
+		return // requireAuth сам редиректит на /login.html
+	}
+
+	// НОВОЕ: показываем имя и роль в сайдбаре (если элементы есть в HTML)
+	const nameEl = document.getElementById('sidebar-user-name')
+	const roleEl = document.getElementById('sidebar-user-role')
+	if (nameEl) nameEl.textContent = currentUser.name || currentUser.email
+	if (roleEl)
+		roleEl.textContent =
+			currentUser.role === 'admin' ? 'Администратор' : 'Менеджер'
+
+	// НОВОЕ: кнопка логаута
+	document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+		const { logout } = await import('../../services/firebaseService.js')
+		await logout()
+	})
+
 	document.getElementById('goods-date').textContent = new Intl.DateTimeFormat(
 		'ru-RU',
-		{
-			weekday: 'long',
-			day: 'numeric',
-			month: 'long',
-			year: 'numeric',
-		},
+		{ weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' },
 	).format(new Date())
 
 	showLoading()
@@ -69,7 +82,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 		showError(e.message)
 	}
 
-	// ── ФИЛЬТРЫ ───────────────────────────────────────────────────────────────
 	document.getElementById('searchInput').addEventListener('input', applyFilters)
 	document
 		.getElementById('contractorFilter')
@@ -82,7 +94,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 		refreshTable(allGoods)
 	})
 
-	// ── ДОБАВИТЬ ТОВАР ────────────────────────────────────────────────────────
 	document.getElementById('addBtn').addEventListener('click', () => {
 		editingId = null
 		multiItems = []
@@ -101,7 +112,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 		if (e.target.id === 'goodModal') closeGoodModal()
 	})
 
-	// + Добавить ещё товар
 	document.getElementById('addMoreBtn').addEventListener('click', () => {
 		if (multiItems.length === 0) {
 			const first = readSingleFields()
@@ -121,10 +131,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 		switchToMultiMode()
 	})
 
-	// Сохранить товар
 	document.getElementById('modalSave').addEventListener('click', onSaveGood)
 
-	// ── ПРОДАТЬ ───────────────────────────────────────────────────────────────
 	document
 		.getElementById('sellModalClose')
 		.addEventListener('click', closeSellModal)
@@ -139,7 +147,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 	})
 	document.getElementById('sellSaveBtn').addEventListener('click', onSellSave)
 
-	// ── УДАЛЕНИЕ ──────────────────────────────────────────────────────────────
 	document.getElementById('confirmCancel').addEventListener('click', () => {
 		deletingId = null
 		document.getElementById('confirmModal').classList.remove('show')
@@ -154,6 +161,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 		.getElementById('confirmDelete')
 		.addEventListener('click', async () => {
 			if (!deletingId) return
+			// НОВОЕ: двойная проверка роли при подтверждении удаления
+			if (!canDelete()) {
+				alert('Недостаточно прав для удаления')
+				return
+			}
 			const btn = document.getElementById('confirmDelete')
 			btn.disabled = true
 			btn.textContent = 'Удаление...'
@@ -170,7 +182,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 			}
 		})
 
-	// ── ИМПОРТ ────────────────────────────────────────────────────────────────
 	document
 		.getElementById('importBtn')
 		.addEventListener('click', openImportModal)
@@ -204,7 +215,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 		.addEventListener('click', handleImportConfirm)
 })
 
-// ── ОБРАБОТЧИКИ СТРОК ПРОДАЖИ ─────────────────────────────────────────────────
 const sellRowHandlers = {
 	onGoodChange(sel, row) {
 		const good = allGoods.find(g => g.id === sel.value)
@@ -238,7 +248,6 @@ const sellRowHandlers = {
 	},
 }
 
-// ── СОХРАНИТЬ ТОВАР ───────────────────────────────────────────────────────────
 async function onSaveGood() {
 	const btn = document.getElementById('modalSave')
 	btn.disabled = true
@@ -259,30 +268,57 @@ async function onSaveGood() {
 		} else if (multiItems.length > 0) {
 			const items = collectMultiItems()
 			const today = new Date().toISOString().slice(0, 10)
+			const freshGoods = [...allGoods]
 			for (const item of items) {
 				if (!item.name || !item.contractor) continue
-				await addItem('goods', {
-					name: item.name,
-					contractor: item.contractor,
-					price: Number(item.price) || 0,
-					sellPrice: Number(item.sellPrice) || 0,
-					qty: Number(item.qty) || 1,
-					barcode: item.barcode || '',
-					saleDate: Timestamp.fromDate(new Date(item.dateStr || today)),
-				})
+				const dup = findDuplicateByName(freshGoods, item.name)
+				if (dup) {
+					const newQty = (dup.qty || 1) + (Number(item.qty) || 1)
+					await updateItem('goods', dup.id, {
+						qty: newQty,
+						price: Number(item.price) || dup.price,
+						sellPrice: Number(item.sellPrice) || dup.sellPrice,
+						barcode: item.barcode || dup.barcode,
+					})
+					dup.qty = newQty
+				} else {
+					const newGood = {
+						name: item.name,
+						contractor: item.contractor,
+						price: Number(item.price) || 0,
+						sellPrice: Number(item.sellPrice) || 0,
+						qty: Number(item.qty) || 1,
+						barcode: item.barcode || '',
+						saleDate: Timestamp.fromDate(new Date(item.dateStr || today)),
+					}
+					await addItem('goods', newGood)
+					freshGoods.push({ ...newGood, id: '_tmp_' + item.name })
+				}
 			}
 		} else {
 			const f = readSingleFields()
 			if (!f) return
-			await addItem('goods', {
-				name: f.name,
-				contractor: f.contractor,
-				price: f.price,
-				sellPrice: f.sellPrice,
-				qty: f.qty,
-				barcode: f.barcode,
-				saleDate: Timestamp.fromDate(new Date(f.dateStr)),
-			})
+			const dup = findDuplicateByName(allGoods, f.name)
+			if (dup) {
+				const newQty = (dup.qty || 1) + (f.qty || 1)
+				await updateItem('goods', dup.id, {
+					qty: newQty,
+					price: f.price || dup.price,
+					sellPrice: f.sellPrice || dup.sellPrice,
+					barcode: f.barcode || dup.barcode,
+				})
+				showToast(`🔗 «${f.name}» объединён — теперь ${newQty} шт.`)
+			} else {
+				await addItem('goods', {
+					name: f.name,
+					contractor: f.contractor,
+					price: f.price,
+					sellPrice: f.sellPrice,
+					qty: f.qty,
+					barcode: f.barcode,
+					saleDate: Timestamp.fromDate(new Date(f.dateStr)),
+				})
+			}
 		}
 		await reloadGoods()
 		closeGoodModal()
@@ -294,7 +330,6 @@ async function onSaveGood() {
 	}
 }
 
-// ── СОХРАНИТЬ ПРОДАЖУ ─────────────────────────────────────────────────────────
 async function onSellSave() {
 	const contractor = document.getElementById('s-contractor').value.trim()
 	const dateStr = document.getElementById('s-date').value
@@ -353,7 +388,6 @@ async function onSellSave() {
 	}
 }
 
-// ── ИМПОРТ ────────────────────────────────────────────────────────────────────
 function openImportModal() {
 	importRows = []
 	document.getElementById('importFileInput').value = ''
@@ -372,6 +406,7 @@ function closeImportModal() {
 	importRows = []
 	document.getElementById('importModal').classList.remove('show')
 }
+
 function handleFile(file) {
 	if (!file) return
 	setImportStatus('loading', '⏳ Читаю файл...')
@@ -423,6 +458,7 @@ function handleFile(file) {
 	}
 	reader.readAsArrayBuffer(file)
 }
+
 async function handleImportConfirm() {
 	if (!importRows.length) return
 	const btn = document.getElementById('importConfirmBtn')
@@ -430,14 +466,11 @@ async function handleImportConfirm() {
 	btn.textContent = '⏳ Загрузка...'
 	setImportStatus('loading', '⏳ Проверяю контрагентов...')
 	try {
-		// Загружаем существующих контрагентов и строим карту нормализованных имён
 		const existing = await getContractors()
 		const contractorMap = {}
 		existing.forEach(c => {
 			contractorMap[normKey(c.name)] = normalizeName(c.name)
 		})
-
-		// Добавляем отсутствующих контрагентов
 		const uniqueNames = [
 			...new Set(importRows.map(r => r.contractor).filter(Boolean)),
 		]
@@ -449,30 +482,49 @@ async function handleImportConfirm() {
 				contractorMap[key] = canonical
 			}
 		}
-
-		let done = 0
+		let done = 0,
+			merged = 0
 		setImportStatus('loading', `⏳ Загружаю ${importRows.length} товаров...`)
+		const freshGoods = [...allGoods]
 		for (const row of importRows) {
 			const saleDate = row.saleDate
 				? Timestamp.fromDate(new Date(row.saleDate))
 				: Timestamp.fromDate(new Date())
 			const canonical =
 				contractorMap[normKey(row.contractor)] || normalizeName(row.contractor)
-			await addItem('goods', {
-				name: row.name,
-				contractor: canonical,
-				price: row.price,
-				sellPrice: row.sellPrice,
-				barcode: row.barcode,
-				qty: row.qty,
-				saleDate,
-			})
+			const dup = findDuplicateByName(freshGoods, row.name)
+			if (dup) {
+				const newQty = (dup.qty || 1) + (row.qty || 1)
+				await updateItem('goods', dup.id, {
+					qty: newQty,
+					price: row.price || dup.price,
+					sellPrice: row.sellPrice || dup.sellPrice,
+					barcode: row.barcode || dup.barcode,
+				})
+				dup.qty = newQty
+				merged++
+			} else {
+				const newGood = {
+					name: row.name,
+					contractor: canonical,
+					price: row.price,
+					sellPrice: row.sellPrice,
+					barcode: row.barcode,
+					qty: row.qty,
+					saleDate,
+				}
+				await addItem('goods', newGood)
+				freshGoods.push({ ...newGood, id: '_tmp_' + row.name })
+			}
 			setImportStatus(
 				'loading',
-				`⏳ Загружено ${++done} из ${importRows.length}...`,
+				`⏳ Обработано ${++done} из ${importRows.length}...`,
 			)
 		}
-		setImportStatus('success', `✅ Успешно загружено ${done} товаров!`)
+		setImportStatus(
+			'success',
+			`✅ Добавлено: ${done - merged}, объединено дублей: ${merged}`,
+		)
 		await reloadGoods()
 		setTimeout(() => closeImportModal(), 1500)
 	} catch (e) {
@@ -482,7 +534,11 @@ async function handleImportConfirm() {
 	}
 }
 
-// ── ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ───────────────────────────────────────────────────
+function findDuplicateByName(goods, name) {
+	const nKey = n => (n || '').trim().replace(/\s+/g, ' ').toLowerCase()
+	return goods.find(g => nKey(g.name) === nKey(name)) || null
+}
+
 function readSingleFields() {
 	const name = document.getElementById('m-name').value.trim()
 	const contractor = document.getElementById('m-contractor').value.trim()
@@ -510,13 +566,14 @@ function redrawMultiItems() {
 			redrawMultiItems()
 		},
 		onPriceQtyChange() {
-			const rows = [...document.querySelectorAll('.item-row')]
-			const total = calcMultiTotal(rows)
-			updateMultiTotalDisplay(total)
+			updateMultiTotalDisplay(
+				calcMultiTotal([...document.querySelectorAll('.item-row')]),
+			)
 		},
 	})
-	const rows = [...document.querySelectorAll('.item-row')]
-	updateMultiTotalDisplay(calcMultiTotal(rows))
+	updateMultiTotalDisplay(
+		calcMultiTotal([...document.querySelectorAll('.item-row')]),
+	)
 }
 
 function openEdit(id) {
@@ -537,7 +594,12 @@ function openEdit(id) {
 	document.getElementById('goodModal').classList.add('show')
 }
 
+// НОВОЕ: проверяем роль перед показом модалки удаления
 function openDelete(id) {
+	if (!canDelete()) {
+		showToast('🚫 Удаление доступно только администратору')
+		return
+	}
 	const g = allGoods.find(x => x.id === id)
 	if (!g) return
 	deletingId = id
@@ -595,12 +657,14 @@ function applyFilters() {
 	refreshTable(result)
 }
 
+// НОВОЕ: передаём canDelete() в renderTable чтобы View знал показывать ли кнопку удаления
 function refreshTable(goods) {
 	renderKPI(calcGoodsKPI(goods))
 	renderTable(goods, {
 		onSell: openSell,
 		onEdit: openEdit,
 		onDelete: openDelete,
+		canDelete: canDelete(),
 	})
 }
 

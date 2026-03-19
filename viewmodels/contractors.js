@@ -1,38 +1,56 @@
 // ── contractors.js (ViewModel) ────────────────────────────────────────────────
-// Точка входа страницы контрагентов. Только:
-//   1. Загружает данные через сервисы
-//   2. Передаёт в Model для обработки
-//   3. Передаёт результат в View для отображения
 
 import {
-	addItem,
+	addItem, // НОВОЕ
+	canDelete,
 	deleteItem,
 	getContractors,
 	getSales,
+	requireAuth,
 	updateItem,
 } from '../services/firebaseService.js'
-import { normalizeDates } from '../services/Utils.js'
+import { normalizeDates } from '../services/utils.js'
 import {
 	filterContractors,
 	findTopContractor,
 	getContractorStats,
 	sortByProfit,
-} from '../models/Contractorsmodel.js'
+} from '../models/contractorsModel.js'
 import {
 	renderKPI,
 	renderTable,
 	showError,
 	showLoading,
-} from '../view/Contractorsview.js'
+} from '../view/contractorsView.js'
 
-// ── СОСТОЯНИЕ ─────────────────────────────────────────────────────────────────
 let allContractors = []
 let allSales = []
 let editingId = null
 let deletingId = null
 
-// ── СТАРТ ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+	// НОВОЕ: проверяем сессию
+	let currentUser
+	try {
+		currentUser = await requireAuth()
+	} catch (e) {
+		return
+	}
+
+	// НОВОЕ: показываем имя и роль в сайдбаре
+	const nameEl = document.getElementById('sidebar-user-name')
+	const roleEl = document.getElementById('sidebar-user-role')
+	if (nameEl) nameEl.textContent = currentUser.name || currentUser.email
+	if (roleEl)
+		roleEl.textContent =
+			currentUser.role === 'admin' ? 'Администратор' : 'Менеджер'
+
+	// НОВОЕ: кнопка логаута
+	document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+		const { logout } = await import('../services/firebaseService.js')
+		await logout()
+	})
+
 	document.getElementById('contractors-date').textContent =
 		new Intl.DateTimeFormat('ru-RU', {
 			weekday: 'long',
@@ -51,13 +69,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 		showError(e.message)
 	}
 
-	// ── ПОИСК ─────────────────────────────────────────────────────────────────
 	document.getElementById('searchInput').addEventListener('input', function () {
-		const filtered = filterContractors(allContractors, this.value)
-		refreshTable(filtered)
+		refreshTable(filterContractors(allContractors, this.value))
 	})
 
-	// ── ДОБАВИТЬ ──────────────────────────────────────────────────────────────
 	document.getElementById('addBtn').addEventListener('click', () => {
 		editingId = null
 		document.getElementById('modal-title').textContent = '➕ Новый контрагент'
@@ -70,7 +85,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 		if (e.target.id === 'contractorModal') closeModal()
 	})
 
-	// ── СОХРАНИТЬ ─────────────────────────────────────────────────────────────
 	document.getElementById('modalSave').addEventListener('click', async () => {
 		const name = document.getElementById('m-name').value.trim()
 		const email = document.getElementById('m-email').value.trim()
@@ -79,7 +93,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 			alert('Введите название контрагента')
 			return
 		}
-
 		const btn = document.getElementById('modalSave')
 		btn.disabled = true
 		btn.textContent = 'Сохранение...'
@@ -97,7 +110,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 		}
 	})
 
-	// ── УДАЛЕНИЕ ──────────────────────────────────────────────────────────────
 	document.getElementById('confirmCancel').addEventListener('click', () => {
 		deletingId = null
 		document.getElementById('confirmModal').classList.remove('show')
@@ -112,6 +124,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 		.getElementById('confirmDelete')
 		.addEventListener('click', async () => {
 			if (!deletingId) return
+			// НОВОЕ: двойная проверка роли
+			if (!canDelete()) {
+				alert('Недостаточно прав для удаления')
+				return
+			}
 			const btn = document.getElementById('confirmDelete')
 			btn.disabled = true
 			btn.textContent = 'Удаление...'
@@ -129,7 +146,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 		})
 })
 
-// ── ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ───────────────────────────────────────────────────
 function openEdit(id) {
 	const c = allContractors.find(x => x.id === id)
 	if (!c) return
@@ -142,7 +158,12 @@ function openEdit(id) {
 	document.getElementById('contractorModal').classList.add('show')
 }
 
+// НОВОЕ: проверяем роль перед показом модалки удаления
 function openDelete(id) {
+	if (!canDelete()) {
+		alert('Удаление доступно только администратору')
+		return
+	}
 	const c = allContractors.find(x => x.id === id)
 	if (!c) return
 	deletingId = id
@@ -162,19 +183,20 @@ function clearModal() {
 	document.getElementById('m-phone').value = ''
 }
 
-// Подготавливает строки с посчитанной статистикой и передаёт в View
+// НОВОЕ: передаём canDelete() в renderTable
 function refreshTable(contractors) {
 	const topName = findTopContractor(contractors, allSales)
 	renderKPI({ total: contractors.length, topName })
-
-	// Model: сортируем и добавляем статистику к каждому контрагенту
 	const sorted = sortByProfit(contractors, allSales)
 	const rows = sorted.map(c => ({
 		...c,
 		...getContractorStats(c.name, allSales),
 	}))
-
-	renderTable(rows, { onEdit: openEdit, onDelete: openDelete })
+	renderTable(rows, {
+		onEdit: openEdit,
+		onDelete: openDelete,
+		canDelete: canDelete(),
+	})
 }
 
 async function reloadData() {
