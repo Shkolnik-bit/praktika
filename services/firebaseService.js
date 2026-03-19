@@ -67,7 +67,7 @@ async function loadUserProfile(firebaseUser) {
 		const newUser = {
 			email: firebaseUser.email,
 			name: firebaseUser.email.split('@')[0],
-			role: 'manager',
+			role: null,
 		}
 		await setDoc(doc(db, 'users', firebaseUser.uid), newUser)
 		_currentUser = { uid: firebaseUser.uid, ...newUser }
